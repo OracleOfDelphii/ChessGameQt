@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/">
+        <file>board.qml</file>
+        <file>graphic.js</file>
+        <file>images/b_bishop.png</file>
+        <file>images/b_horse.png</file>
+        <file>images/b_king.png</file>
+        <file>images/b_queen.png</file>
+        <file>images/b_rock.png</file>
+        <file>images/b_soldier.png</file>
+        <file>images/w_bishop.png</file>
+        <file>images/w_horse.png</file>
+        <file>images/w_king.png</file>
+        <file>images/w_queen.png</file>
+        <file>images/w_rock.png</file>
+        <file>images/w_soldier.png</file>
+        <file>board_copy.qml</file>
+    </qresource>
+</RCC>
