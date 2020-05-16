@@ -8,9 +8,10 @@ Window {
     width: 8 * 64 + 50
     height: 8 * 64 + 50
     title: qsTr("Chess game")
-    property int grabbed_ind : -1;
-    property int dropped_ind : -1;
-
+    property int _ind : 0;
+    property int dropped_ind : 0;
+    property int grabbed_ind : 0;
+    property bool is_dropped : false
     GridLayout{
         id: bg_grid
         x:4
@@ -37,17 +38,30 @@ Window {
                     DropArea {
                         anchors.fill: parent
                         id: dragTarget
+
                         property string cl_prev
-                      onContainsDragChanged: {
-                          if(containsDrag){
-                              cl_prev = cl
-                              cl = "Blue"
-                              units_grid.board.itemAt(2).cell_unit.src = ""
-                          }
-                          else{
-                              cl =  cl_prev
-                          }
-                      }
+                        onContainsDragChanged: {
+                            if(containsDrag){
+                                console.log(index)
+                                cl_prev = cl
+                                cl = "Pink"
+                            }
+                            else{
+                                cl =  cl_prev
+
+                            }
+                        }
+
+                        onExited: {
+
+                        }
+
+                        onDropped: {
+                            console.log("Fuck")
+
+
+                        }
+
 
 
                     }
@@ -72,6 +86,10 @@ Window {
                 id: cell_unit
                 width: 64
                 height: 64
+                property int  cur_x
+                property int  cur_y
+                property int  prev_x : unit.x
+                property int  prev_y : unit.y
                 property  string src :  if((index > 7 && index <= 15)) return "images/w_soldier.png"
                                         else if((index >= 48 && index < 56)) return "images/b_soldier.png"
                                         else{
@@ -117,6 +135,8 @@ Window {
 
 
                 Image{
+                    x: cur_x
+                    y: cur_y
                     visible: true
                     opacity: 1.0
                     id : unit
@@ -129,28 +149,37 @@ Window {
 
                     Drag.active: Drag.Automatic
                     Drag.hotSpot.x: 32
-                           Drag.hotSpot.y: 40
+                    Drag.hotSpot.y: 40
 
-                           onDragActiveChanged: {
-                               if (dragActive) {
-                                   print("drag started")
-                                   Drag.start();
-                               } else {
-                                   print("drag finished")
-                                   Drag.drop();
-                               }
-                           }
+                    onDragActiveChanged: {
+                        // if the cell is empty, you can not move it
+                        // improve the logic later
+                        if (src != "" && dragActive) {
+                            print("drag started")
+
+                            grabbed_ind = index
+                            Drag.start();
+                            is_dropped = false;
+                        }
+                        else {
+                            cur_x = x
+                            cur_y = y
+                            print("drag finished")
+                             Layout.row = 2
+                             Layout.column  =  3
+
+                            Drag.drop();
+
+                        }
+                    }
                     MouseArea{
                         id: dragArea
                         anchors.fill: parent
                         drag.target: unit
-                        onPressed: {
+                        onPressed:{
+                            }
 
-                        }
 
-                        onReleased: {
-                           Drag.drop()
-                        }
                     }
                 }
 
