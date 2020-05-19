@@ -15,5 +15,7 @@
         <file>images/w_rock.png</file>
         <file>images/w_soldier.png</file>
         <file>board_copy.qml</file>
+        <file>Units.qml</file>
+        <file>logic.js</file>
     </qresource>
 </RCC>

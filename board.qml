@@ -1,189 +1,243 @@
 import QtQuick 2.9
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.3
+import QtQml.Models 2.3
+import QtQuick.Controls 2.12
 import "graphic.js" as Graphic
+import "logic.js" as Logic
+
+// needs refactor, seperate ui from logic
+/*
+ The graphic has three parts so far:
+    grid for units
+    grid for background
+    A row for additional things(like score, ...)
+    grid for background is almost static, it can only change color when units are being moved
+    grid for units is dynamic
+*/
+
+// problem with rotation, either turn off rotation or make it responsive
+// fix anything that is hard-coded
 Window {
-    id : main
+    id: main
+    color: "black"
     visible: true
-    width: 8 * 64 + 50
-    height: 8 * 64 + 50
     title: qsTr("Chess game")
+    width : 8 * 48
+    height : 8 * 48  +  40
+
     property int _ind : 0;
     property int dropped_ind : 0;
     property int grabbed_ind : 0;
     property bool is_dropped : false
-    GridLayout{
-        id: bg_grid
-        x:4
-        y:4
-        rows : 8
-        columns: 8
-        property alias bg_repeater : bg_repeater;
-
-        Repeater{
-            id: bg_repeater
-            model : 64
-            Item{
-                id: cell_bg
-                width:64
-                height:64
-                property string cl : Graphic.cell_color(index)
-                Rectangle{
-                    z : 0
-                    width : 64
-                    height : 64
-                    color : cl
+    property var l_board : [[]]
+    property var turn : 0
 
 
-                    DropArea {
-                        anchors.fill: parent
-                        id: dragTarget
+    Component.onCompleted : {
+        l_board = Logic.create_table()
+    }
 
-                        property string cl_prev
-                        onContainsDragChanged: {
-                            if(containsDrag){
-                                console.log(index)
-                                cl_prev = cl
-                                cl = "Pink"
+    ColumnLayout{
+        Layout.fillHeight: true
+
+        Layout.fillWidth:  true
+
+        RowLayout{
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+            height: 40
+            LayoutMirroring.childrenInherit: true
+            LayoutMirroring.enabled: true
+
+            Rectangle{
+                visible:  true
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+
+                color: "Orange"
+
+                Label{
+                    color:"black"
+
+
+                    padding: 2
+                    text:"Score: 0"
+                    visible: true
+                    font.bold : true
+
+                    font.family: "IRANSans"
+
+                }
+            }
+        }
+
+        Item{
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+
+
+            width : 8 * 48
+            height : 8 * 48 + 40
+            id: game_area
+            y:40
+
+            MouseArea{
+
+                id: marea
+                z:1
+                anchors.fill: parent
+                hoverEnabled: true
+                property color cl
+                property int mode : 0
+                property  int  prev_x : -1
+                property int prev_y : -1
+                property QtObject gcell
+                property QtObject dcell
+                property QtObject gunit
+                property QtObject dunit
+
+                onReleased: {
+
+                }
+
+                onPressed: {
+                    /*
+                   if mode == 0 : player 1 is still choosing
+                   if mode == 1 : player 2 is going to choose
+                   if mode == 2 : no one is choosing, no action this time
+                */
+
+                    /*
+                    blue is hover( incomplete for android since there is no hover)
+                    purple is player 1
+                  */
+
+                    // problem: player doesn't have a chance to change movement/cancel
+                    // if movement was illegal, cancel it!
+
+                    if(mode == 2){
+                        mode = 0
+                    }
+                    if(mode == 1){
+                        dcell = bg_grid.itemAt(marea.mouseX,marea.mouseY)
+                        dunit = grid16.itemAt(marea.mouseX,marea.mouseY)
+                        if(gunit !== dunit){
+                            if(dunit === grid16.itemAt(marea.mouseX,marea.mouseY)) {
+                                main.dropped_ind = grid16.indexAt(marea.mouseX,marea.mouseY)
+                                z = -1
+                                if( grabbed_ind < dropped_ind){
+                                    gridModel.move(grabbed_ind, dropped_ind, 1)
+                                    gridModel.move(dropped_ind - 1, grabbed_ind, 1)
+                                }
+                                else{
+                                    gridModel.move(dropped_ind, grabbed_ind, 1)
+                                    gridModel.move(grabbed_ind - 1, dropped_ind, 1)
+                                }
+                                mode++
+                                gcell.cl = Graphic.cell_color(grabbed_ind)
                             }
-                            else{
-                                cl =  cl_prev
-
-                            }
                         }
-
-                        onExited: {
-
+                        else{
+                            mode = 0;
+                            gcell.cl = Graphic.cell_color(grabbed_ind)
                         }
+                    }
+                    else if(mode == 0){
+                        gcell = bg_grid.itemAt(marea.mouseX,marea.mouseY)
+                        gunit = grid16.itemAt(marea.mouseX,marea.mouseY)
+                        if(gunit.src !== ""){
 
-                        onDropped: {
-                            console.log("Fuck")
-
-
+                            main.grabbed_ind = grid16.indexAt(marea.mouseX,marea.mouseY)
+                            cl = bg_grid.itemAt(marea.mouseX,marea.mouseY).cl
+                            bg_grid.itemAt(marea.mouseX,marea.mouseY).cl = "Purple"
+                            mode++;
                         }
+                    }
+
+                }
+
+                onPositionChanged: {
+                    var index = bg_grid.indexAt(prev_x, prev_y)
+                    if(index >= 0 && index <= 63){
+                        if(bg_grid.indexAt(prev_x, prev_y) !== grabbed_ind)
+                            bg_grid.itemAt(prev_x, prev_y).cl = Graphic.cell_color(index)
+                        if(bg_grid.indexAt(marea.mouseX,marea.mouseY) !== grabbed_ind)
+                            bg_grid.itemAt(marea.mouseX,marea.mouseY).cl = "Blue"
+                        // bug on android since there is no hover
+                    }
+                    prev_x = mouseX
+                    prev_y = mouseY
+                }
+            }
+
+            GridView{
+                id: bg_grid
+                anchors.centerIn: parent
+                cellWidth:  48
+                cellHeight: 48
+                interactive:  false
+
+                anchors.fill: parent
+
+                model: bgModel
 
 
+                delegate:
+
+                    Item{
+                    id: cell_bg
+                    width:48
+                    height:48
+                    property string cl : Graphic.cell_color(index)
+                    Rectangle{
+                        z : 0
+                        width : 48
+                        height : 48
+                        color : cl
 
                     }
                 }
             }
 
-        }
-    }
-    GridLayout{
-        z:1
-        id: units_grid
-
-        rows: 8
-
-        columns: 8
-        property  alias  board: unit_repeater
-        Repeater{
-            id:unit_repeater
-            model: 64
-
-            Item{
-                id: cell_unit
-                width: 64
-                height: 64
-                property int  cur_x
-                property int  cur_y
-                property int  prev_x : unit.x
-                property int  prev_y : unit.y
-                property  string src :  if((index > 7 && index <= 15)) return "images/w_soldier.png"
-                                        else if((index >= 48 && index < 56)) return "images/b_soldier.png"
-                                        else{
-                                            switch(index){
-                                            case 56:
-                                                return "images/b_rock.png"
-                                            case 57:
-                                                return "images/b_horse.png"
-                                            case 58:
-                                                return "images/b_bishop.png"
-                                            case 59:
-                                                return "images/b_queen.png"
-                                            case 60:
-                                                return "images/b_king.png"
-                                            case 61:
-                                                return "images/b_bishop.png"
-                                            case 62:
-                                                return "images/b_horse.png"
-                                            case 63:
-                                                return "images/b_rock.png"
-
-                                            case 0:
-                                                return "images/w_rock.png"
-                                            case 1:
-                                                return "images/w_horse.png"
-                                            case 2:
-                                                return "images/w_bishop.png"
-                                            case 3:
-                                                return "images/w_queen.png"
-                                            case 4:
-                                                return "images/w_king.png"
-                                            case 5:
-                                                return "images/w_bishop.png"
-                                            case 6:
-                                                return "images/w_horse.png"
-                                            case 7:
-                                                return "images/w_rock.png"
-                                            default:
-                                                return ""
-                                            }
-                                        }
 
 
 
-                Image{
-                    x: cur_x
-                    y: cur_y
-                    visible: true
-                    opacity: 1.0
-                    id : unit
-                    width: 64
-                    height : 64
-                    fillMode: Image.PreserveAspectFit
-                    source: src
+            GridView {
+                interactive:  false
+                id: grid16;
+                anchors.fill: parent
+                cellWidth:  48
+                cellHeight: 48
+                model: gridModel
 
-                    property bool dragActive: dragArea.drag.active
+                delegate:
+                    Units{
+                    index: Graphic.set_index()
+                }
 
-                    Drag.active: Drag.Automatic
-                    Drag.hotSpot.x: 32
-                    Drag.hotSpot.y: 40
-
-                    onDragActiveChanged: {
-                        // if the cell is empty, you can not move it
-                        // improve the logic later
-                        if (src != "" && dragActive) {
-                            print("drag started")
-
-                            grabbed_ind = index
-                            Drag.start();
-                            is_dropped = false;
-                        }
-                        else {
-                            cur_x = x
-                            cur_y = y
-                            print("drag finished")
-                             Layout.row = 2
-                             Layout.column  =  3
-
-                            Drag.drop();
-
-                        }
+                move: Transition {
+                    NumberAnimation { properties: "x,y"; duration: 250
                     }
-                    MouseArea{
-                        id: dragArea
-                        anchors.fill: parent
-                        drag.target: unit
-                        onPressed:{
-                            }
+                }
+            }
 
-
+            ListModel {
+                id: gridModel
+                Component.onCompleted: {
+                    for(var j= 0; j < 64; j++){
+                        gridModel.append(Units)
                     }
                 }
 
+            }
 
+            ListModel {
+                id: bgModel
+
+                Component.onCompleted: {
+                    for(var j= 0; j < 64; j++){
+                        bgModel.append(Units)
+                    }
+                }
 
             }
         }
