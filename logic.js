@@ -3,91 +3,120 @@
   In ui, the background and units are seperated,
   but with logic this seperation is unnecessary
 */
-function create_table(){
 
+class Unit {
+    constructor(color, utype, index) {
+        this.color = color
+        this.unit_type = utype
+        this.index = index
+    }
+    is_white(){
+        return this.color === "white"
+    }
+    get utype(){
+        return unit_type
+    }
+    is_valid_mv(target){
+        switch(this.unit_type){
+            case "horse":
+            if(this.is_white()){
+                if(target === this.index + 8)
+                return true;
+            }
+            else{
+                if(target === this.index  - 8)
+                return true;
+            }
+
+            return false;
+        }
+    }
+}
+
+
+function create_table(){
     var board = []
     for(var i = 0; i <= 63; i++){
-        board.push([false,""])
+        let un = new Unit()
         var index = i;
         if((index > 7 && index <= 15)) {
-            board[i][1] = "soldier"
-            board[i][0] = true
+            un = new Unit("white", "soldier", index)
+            board.push(un)
         }
         else if((index >= 48 && index < 56)) {
-            board[i][1] = "soldier"
-            board[i][0] = false
+            un = new Unit("black", "soldier", index)
+            board.push(un)
         }
         else{
             switch(index){
             case 56:
-                board[i][1] = "rock"
-                board[i][0] = false
+                un = new Unit("black", "rock", index)
+                board.push(un)
                 break;
             case 57:
-                board[i][0] = false
-                board[i][1] = "horse"
+                un = new Unit("black", "horse", index)
+                board.push(un)
                 break;
             case 58:
-                board[i][0] = false
-                board[i][1] = "bishop"
+                un = new Unit("black", "bishop", index)
+                board.push(un)
                 break;
             case 59:
-                board[i][0] = false
-                board[i][1] = "queen"
+                un = new Unit("black", "queen", index)
+                board.push(un)
                 break;
             case 60:
-                board[i][0] = false
-                board[i][1] = "king"
+                un = new Unit("black", "king", index)
+                board.push(un)
                 break;
             case 61:
-                board[i][0] = false
-                board[i][1] = "bishop"
+                un = new Unit("black", "bishop", index)
+                board.push(un)
                 break;
             case 62:
-                board[i][0] = false
-                board[i][1] = "horse"
+                un = new Unit("black", "horse", index)
+                board.push(un)
                 break;
             case 63:
-                board[i][0] = false
-                board[i][1] = "rock"
+                un = new Unit("black", "rock", index)
+                board.push(un)
                 break;
 
             case 0:
-                board[i][0] = true
-                board[i][1] = "rock"
+                un = new Unit("white", "rock", index)
+                board.push(un)
                 break;
             case 1:
-                board[i][0] = true
-                board[i][1] = "horse"
+                un = new Unit("white", "horse", index)
+                board.push(un)
                 break;
             case 2:
-                board[i][0] = true
-                board[i][1] = "bishop"
+                un = new Unit("white", "bishop", index)
+                board.push(un)
                 break;
             case 3:
-                board[i][0] = true
-                board[i][1] = "queen"
+                un = new Unit("white", "queen", index)
+                board.push(un)
                 break;
             case 4:
-                board[i][0] = true
-                board[i][1] = "king"
+                un = new Unit("white", "king", index)
+                board.push(un)
                 break;
             case 5:
-                board[i][0] = true
-                board[i][1] = "bishop"
+                un = new Unit("white", "bishop", index)
+                board.push(un)
                 break;
             case 6:
-                board[i][0] = true
-                board[i][1] = "horse"
+                un = new Unit("white", "horse", index)
+                board.push(un)
                 break;
             case 7:
-                board[i][0] = true
-                board[i][1] = "rock"
+                un = new Unit("white", "rock", index)
+                board.push(un)
                 break;
             default:
-                board[i][0] = false
-                board[i][1] = ""
-                break;
+                un = new Unit("black", "", index)
+                board.push(un)
             }
         }
     }
@@ -95,19 +124,28 @@ function create_table(){
 }
 
 // checks if game reached check state
-function is_check(){
-
+// uindex is attacker_unit
+// tc_index is target cell index
+function is_check(uindex, tc_index){
+    if(!is_valid_mv(tc_index)) return "black"
+    switch (get_unit_type(uindex)) {
+    case "soldier":
+    case "bishop":
+    case "":
+    }
 }
+
 
 // checks if game is finished
 function is_mate(){
 
 }
-// it returns a boolean value for player movements, true if it's a valid move, false otherwise.
-function is_valid_mv(unit_type){
-    switch(board[i][1]){
-    case "bishop":
-break;
 
-    }
+function get_unit_type(index){
+    return main.l_board[index].type
+}
+
+// it returns a boolean value for player movements, "white" if it's a valid move, "black" otherwise.
+function is_valid_mv(index){
+    return "white";
 }
