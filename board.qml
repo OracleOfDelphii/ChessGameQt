@@ -19,6 +19,8 @@ import "logic.js" as Logic
 
 // problem with rotation, either turn off rotation or make it responsive
 // fix anything that is hard-coded
+
+// To-Do rotation + starter(default white)
 Window {
     id: main
     color: "black"
@@ -34,6 +36,7 @@ Window {
     property var l_board:  Logic.create_table()
     property string last_move
     property var turn: 0
+    property var starter : "white"
 
 
 
@@ -90,6 +93,7 @@ Window {
             id: game_area
 
             MouseArea{
+                rotation: 0
                 id: marea
                 z:1
                 width: 8 * 48
@@ -104,10 +108,14 @@ Window {
 
                 onReleased: {
                      dropped_ind = grid16.indexAt(mouseX, mouseY)
+                    if(Logic.is_valid_mv(grabbed_ind, dropped_ind))
                     Graphic.add_last5_move()
+
+                    turn++
                 }
 
                 onPressed: {
+
                     grabbed_ind = grid16.indexAt(mouseX, mouseY)
                 }
 
@@ -120,6 +128,7 @@ Window {
                             if(prev_cell !== grabbed_ind){
                                 prev_cell.cl = Graphic.cell_color(prev_index)
                             }
+
                             if(bg_grid.indexAt(marea.mouseX,marea.mouseY) !== grabbed_ind) {
                                 bg_grid.itemAt(marea.mouseX,marea.mouseY).cl = "Blue"
                                 // bug on android since there is no hover
@@ -132,6 +141,7 @@ Window {
             }
 
             GridView{
+                rotation: 0
                 id: bg_grid
                 cellWidth:  48
                 cellHeight: 48
@@ -164,14 +174,15 @@ Window {
                 id: grid16;
                 cellWidth: 48
                 cellHeight: 48
-
+                rotation: 0
                 model: boardModel
 
                 delegate:
                     Units{
                     index: number
                     src: Graphic.unit_src(number)
-                    is_white: l_board[number].is_white()
+                    rotation: 0
+                    is_white: l_board[number].cl === "white"
                 }
 
                 move: Transition {

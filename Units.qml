@@ -3,11 +3,12 @@ import QtQuick.Layouts 1.3
 import "graphic.js" as Graphic
 
 
-
+// this is an item that will contain an image of a chess piece
 Item{
     id: cell_unit
     width: 48
     height: 48
+
     property int index: 0
     property bool is_white: false
     property string unit_type: ""

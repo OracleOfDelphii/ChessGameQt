@@ -46,9 +46,9 @@ function add_last5_move(){
 // returns the true icon for a piece by getting information from logical board
 // w_{name} for white units, b_{name} for black units
 function unit_src(index){
-    var str1 = l_board[index].is_white() === true ? "b_" : "w_"
+    var str1 = l_board[index].cl === "white" ? "w_" : "b_"
     var str2 = l_board[index].unit_type
-    if(str2 === "") return ""
+    if(str2 === "empty") return ""
     return "images/" + str1 + str2
 }
 
