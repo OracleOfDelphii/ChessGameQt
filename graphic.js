@@ -4,6 +4,8 @@ var index = 0;
 
 // returns color of a cell specified with index of chess background
 // TO-DO, [color costomization]
+// TO-Do, statistics
+
 function cell_color(index) {
     var color1 = "Black"
     var color2 = "Gray"
@@ -31,22 +33,15 @@ function add_last5_move(){
     index = dropped_ind
     col = String.fromCharCode('a'.charCodeAt(0) + index % 8)
     var to =  col + (8 - Math.floor(index / 8))
-
-    var move = from + '->' + to
-    last_5_moves.append({"move" : move })
-    if(turn == 0 ) {
-        turn = 1;
-    }
-    else{
-        turn = 0;
-    }
+    var move =   from + '->' + to
+    last_5_moves.append({"mv" : move , "ucolor": l_board[dropped_ind].ucolor, "src": unit_src(grabbed_ind) })
 }
 
 
 // returns the true icon for a piece by getting information from logical board
 // w_{name} for white units, b_{name} for black units
 function unit_src(index){
-    var str1 = l_board[index].cl === "white" ? "w_" : "b_"
+    var str1 = l_board[index].ucolor === "white" ? "w_" : "b_"
     var str2 = l_board[index].unit_type
     if(str2 === "empty") return ""
     return "images/" + str1 + str2

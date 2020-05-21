@@ -21,6 +21,7 @@ import "logic.js" as Logic
 // fix anything that is hard-coded
 
 // To-Do rotation + starter(default white)
+
 Window {
     id: main
     color: "black"
@@ -34,26 +35,25 @@ Window {
     property int grabbed_ind: 0;
     property bool is_dropped: false
     property var l_board:  Logic.create_table()
+    property var players: Logic.create_player()
+
     property string last_move
-    property var turn: 0
+
+    property int player_turn : 0
     property var starter : "white"
-
-
-
 
 
     ColumnLayout{
 
-
         Rectangle{
-            id: rectangle
+            id: last_moves_container
             width: 384
             height: 30
             visible:  true
             Layout.fillHeight: false
             Layout.fillWidth: false
             opacity: 0.5
-            color: "skyblue"
+            color: "brown"
             transformOrigin: Item.Top
             z: 1
 
@@ -62,25 +62,33 @@ Window {
                 id: element
                 width: 400
                 height: 400
-                spacing: 15
-                layoutDirection: Qt.RightToLeft
 
-
-
+                leftPadding: 4
+                rightPadding: 4
+                topPadding: 5
+                // suggestion: dedicate a last_5_move for each player
                 ListView{
                     width: 384
                     height: 30
                     orientation: ListView.Horizontal
-                    spacing: 15
+                    interactive:  false
+                    spacing: 8
                     visible:  true
                     model: last_5_moves
-
-                    delegate: Text {
-                        text: move
-                        font.bold: true
-
-                        Component.onCompleted: {
-                            color = (turn == 1 ? "white" : "Black")
+                    delegate:
+                        Flow{
+                        spacing: 4
+                        Image {
+                            width: 16
+                            height: 16
+                            source: src
+                            fillMode: Image.PreserveAspectFit
+                        }
+                        Text {
+                            text:  mv
+                            font.bold: true
+                            font.pixelSize: 15
+                            color : ucolor
                         }
                     }
                 }
@@ -88,10 +96,8 @@ Window {
         }
 
         Item{
-
-            y:30
+            y: last_moves_container.height
             id: game_area
-
             MouseArea{
                 rotation: 0
                 id: marea
@@ -104,14 +110,34 @@ Window {
                 property  int  prev_x: -1
                 property int prev_y: -1
 
-
-
                 onReleased: {
-                     dropped_ind = grid16.indexAt(mouseX, mouseY)
-                    if(Logic.is_valid_mv(grabbed_ind, dropped_ind))
-                    Graphic.add_last5_move()
+                    dropped_ind = bg_grid.indexAt(mouseX, mouseY)
+                    var dropped_unit = grid16.itemAt(mouseX, mouseY)
+                    if(Logic.is_valid_mv(grabbed_ind, dropped_ind)){
 
-                    turn++
+                        l_board[grabbed_ind].index = dropped_ind
+                        l_board[dropped_ind]  = l_board[grabbed_ind]
+                        l_board[grabbed_ind] = Logic.empty_unit(grabbed_ind)
+                        dropped_unit.src = ""
+                        Graphic.add_last5_move()
+                        players[player_turn].inc_mv_num()
+                        if(player_turn == 0){
+                            player_turn = 1
+                        }
+                        else{
+                            player_turn = 0
+                        }
+                        if( grabbed_ind < dropped_ind){
+                            boardModel.move(grabbed_ind, dropped_ind, 1)
+                            boardModel.move(dropped_ind - 1, grabbed_ind, 1)
+                        }
+                        else{
+                            boardModel.move(dropped_ind, grabbed_ind, 1)
+                            boardModel.move(grabbed_ind - 1, dropped_ind, 1)
+                        }
+
+                    }
+
                 }
 
                 onPressed: {
@@ -120,7 +146,7 @@ Window {
                 }
 
                 onPositionChanged: {
-                    // index of previous visited cell(hover)
+                 /*    // index of previous visited cell(hover)
                     if(prev_x != -1 && prev_y != -1){
                         var prev_cell = bg_grid.itemAt(prev_x, prev_y)
                         var prev_index = bg_grid.indexAt(prev_x, prev_y)
@@ -137,7 +163,9 @@ Window {
                     }
                     prev_x = mouseX
                     prev_y = mouseY
-                }
+ */
+   }
+
             }
 
             GridView{
@@ -146,7 +174,7 @@ Window {
                 cellWidth:  48
                 cellHeight: 48
                 interactive:  false
-                model: boardModel
+                model: bgModel
                 width: 8 * 48
                 height: 8 * 48
                 delegate:
@@ -154,7 +182,11 @@ Window {
                     id: cell_bg
                     width: 48
                     height: 48
-                    property string cl: Graphic.cell_color(number)
+                    property string cl
+                    Component.onCompleted: {
+                        cl = Graphic.cell_color(number)
+                    }
+
                     Rectangle{
                         z: 0
                         width: 48
@@ -163,9 +195,6 @@ Window {
                     }
                 }
             }
-
-
-
 
             GridView {
                 width: 8 * 48
@@ -180,18 +209,27 @@ Window {
                 delegate:
                     Units{
                     index: number
-                    src: Graphic.unit_src(number)
+                    src: Graphic.unit_src(l_board[number].index)
                     rotation: 0
-                    is_white: l_board[number].cl === "white"
+                    is_white: l_board[number].ucolor === "white"
                 }
 
                 move: Transition {
+                    // duration looks more on android \(-_-)/
                     NumberAnimation { properties: "x,y"; duration: 250 }
                 }
             }
 
             ListModel {
                 id: boardModel
+                Component.onCompleted: {
+                    for(var i = 0; i <= 63; i++){
+                        append({"number": i})
+                    }
+                }
+            }
+            ListModel {
+                id: bgModel
                 Component.onCompleted: {
                     for(var i = 0; i <= 63; i++){
                         append({"number": i})
