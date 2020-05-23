@@ -23,9 +23,7 @@ function cell_color(index) {
 
 // last 4 moves
 function add_last5_move(){
-    if(last_5_moves.count === 5) {
-        last_5_moves.remove(0)
-    }
+
     var index = grabbed_ind
     var col = String.fromCharCode('a'.charCodeAt(0) + index % 8)
     var from =  col + (8 - Math.floor(index / 8))
@@ -34,8 +32,19 @@ function add_last5_move(){
     col = String.fromCharCode('a'.charCodeAt(0) + index % 8)
     var to =  col + (8 - Math.floor(index / 8))
     var move =   from + '->' + to
-    last_5_moves.append({"mv" : move , "ucolor": l_board[dropped_ind].ucolor, "src": unit_src(grabbed_ind) })
+    if(l_board[dropped_ind].ucolor === "black"){
+        if(black_last_5_moves.count === 5) {
+            black_last_5_moves.remove(0)
+        }
+        black_last_5_moves.append({"mv" : move , "ucolor": l_board[dropped_ind].ucolor, "src": unit_src(l_board[dropped_ind].index) })
+    }
+    else if(l_board[dropped_ind].ucolor === "white"){
+        if(white_last_5_moves.count === 5) {
+            white_last_5_moves.remove(0)
+        }
+        white_last_5_moves.append({"mv" : move , "ucolor": l_board[dropped_ind].ucolor, "src": unit_src(l_board[dropped_ind].index) })
 }
+    }
 
 
 // returns the true icon for a piece by getting information from logical board

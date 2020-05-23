@@ -13,7 +13,6 @@ int main(int argc, char *argv[])
     QProcess process1;
     QProcess process2;
 
-
     process1.setStandardOutputProcess(&process2);
 
 
