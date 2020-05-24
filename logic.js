@@ -1,12 +1,19 @@
+// TO-DO write unit tests
+
+//! A class containing information about each player
 class Player {
     constructor(name, color){
         this.name = name
         this.ucolor = color
         this.move_num = 1
+        this.check = false
     }
+    // get number of movements this player made
     get mv_num(){
         return this.move_num
     }
+
+    // number of movements this player has so far will be increased by 1
     inc_mv_num(){
         this.move_num = this.move_num + 1
     }
@@ -15,20 +22,14 @@ class Player {
 // for test, will be changed later
 function create_player(){
     var players = []
-    var p1 = new Player("ali", "black")
-    var p2 = new Player("reza", "white")
+    var p1 = new Player("Ali", "white")
+    var p2 = new Player("Reza", "black")
     players.push(p1)
     players.push(p2)
     return players
 }
 
-
-/*
-each unit is a logical chess unit, which
-later a graphical instance will be built from it.
-*/
-
-// add has_vertical, has_horizontal, has diagonal move to Unit class
+// TO-DO add has_vertical, has_horizontal, has diagonal move to Unit class
 class Unit {
     // utype -> unit type
     // color -> {black, white}
@@ -47,23 +48,27 @@ class Unit {
     }
 }
 
+//! TO-DO
 function is_mate(){
 
 }
+
+//! returns an empty unit to fill the cells with no chess piece
 
 function empty_unit(index){
     return new Unit("", "empty", index)
 }
 
+//! checks if horse can jump to target or not
 function is_valid_jump(start_index, target_index, board){
     var start_unit = board[start_index]
     var tar_unit = board[target_index]
     // conditions to check
     var cd1, cd2, cd3, cd4, cd5, cd6, cd7, cd8
     if(tar_unit.ucolor === start_unit.ucolor){
-
         return false;
     }
+    // atmost, there are 8 possible positions horse can jump into.
     cd1 = (start_index + 15) === target_index
     cd2 = (start_index - 15) === target_index
     cd3 = (start_index + 17) === target_index
@@ -149,8 +154,6 @@ function is_valid_vertical(start_index, target_index, board){
 
 //! this function always starts from upper position on the board to the lower position and
 // checks if they can meet together with a horizontal move of starter
-
-// bugggg
 function is_valid_horizontal(start_index, target_index, board){
 
     var start_unit = board[start_index]
@@ -158,31 +161,24 @@ function is_valid_horizontal(start_index, target_index, board){
     var up_unit= board[Math.max(start_index, target_index)]
     var lp_unit = board[Math.min(start_index, target_index)]
     var up_pos = Math.max(start_index, target_index)
-    var lp_pos = Math.max(start_index, target_index)
-
+    var lp_pos = Math.min(start_index, target_index)
+//
     var king = start_unit.utype === "king"
     var dist = Math.abs(start_index - target_index)
     if(king){
         if(dist > 1) return false
     }
 
+    if(Math.floor((up_pos) / 8) !== Math.floor((lp_pos) / 8)){
 
-    if(Math.floor(up_pos / 8) !== Math.floor(lp_pos / 8)){
         return false
     }
 
     var found = false
-    for(var i = Math.max(start_index, target_index) - 1; i >= Math.min(start_index, target_index); i--){
-        // fix later
-        if(up_unit.utype !== "empty"){
-            if(board[i].utype !== "empty" && board[i] !== lp_unit){
-                return false;
-            }
-        }
-        else{
-            if(board[i].utype !== "empty" && board[i] !== lp_unit){
-                return false;
-            }
+    for(var i = up_pos - 1; i >= lp_pos; i--){
+
+        if(board[i].utype !== "empty" && board[i] !== lp_unit){
+            return false;
         }
 
         if(i === Math.min(start_index, target_index)) found = true
@@ -201,7 +197,6 @@ function is_valid_horizontal(start_index, target_index, board){
 function is_valid_diagonal(start_index, target_index, board){
     var start_unit = board[start_index]
     var tar_unit = board[target_index]
-
     var up_unit= board[Math.max(start_index, target_index)]
     var lp_unit = board[Math.min(start_index, target_index)]
     var king = start_unit.utype === "king"
@@ -212,12 +207,10 @@ function is_valid_diagonal(start_index, target_index, board){
     }
 
     if(soldier){
-
         if(tar_unit.utype === "empty"){
             return false
         }
         if(start_unit.ucolor === starter){
-
             if(start_unit !== up_unit){
                 return false
             }
@@ -277,7 +270,6 @@ function is_valid_diagonal(start_index, target_index, board){
         }
         if(!found) return false
     }
-
     if(tar_unit.ucolor === start_unit.ucolor){
 
         return false;
@@ -349,7 +341,6 @@ function create_table(){
             case 60:
                 un = new Unit("white", "king", i, cnt)
                 w_king_pos = index
-                w_king_id  = cnt
                 white_unit_indices[cnt] = i
                 board.push(un)
                 cnt++; break;
@@ -394,7 +385,6 @@ function create_table(){
                 un = new Unit("black", "king", i, cnt)
                 b_king_pos = index
                 black_unit_indices[cnt] = i
-                b_king_id = cnt
                 board.push(un)
                 cnt++; break;
             case 5:
@@ -419,9 +409,11 @@ function create_table(){
     return board;
 }
 
-//! checks if game is check
-//! returns position of threatened king, if no one, returns -1
-function is_check(start_index, target_index, board, color){
+//! checks if the player is check
+// returns position of threatened king, if no one, returns -1
+// It creates a virtual board, makes a movement and checks if
+// in that scenario the king is threatened or not.
+function check(start_index, target_index, board, color){
     var future_board = Object.assign([], board);
     var future_white_unit_indices = Object.assign([],  white_unit_indices)
     var future_black_unit_indices = Object.assign([],  black_unit_indices)
@@ -437,19 +429,19 @@ function is_check(start_index, target_index, board, color){
     }
 
     if(color === "black")
-    if(future_board[start_index].ucolor === "white"){
-        if(future_board[start_index].id !== -1)
-            future_white_unit_indices[future_board[start_index].id] =  target_index
-
-        future_white_unit_indices[future_board[target_index].id] =  -1
-    }
+        if(future_board[start_index].ucolor === "white"){
+            if(future_board[start_index].id !== -1)
+                future_white_unit_indices[future_board[start_index].id] =  target_index
+            if(future_board[target_index].id !== -1)
+                future_white_unit_indices[future_board[target_index].id] =  -1
+        }
     if(color === "white")
-    if(future_board[start_index].ucolor === "black"){
-        if(future_board[start_index].id !== -1)
-            future_black_unit_indices[future_board[start_index].id] =  target_index
-        if(future_board[target_index].id !== -1)
-            future_black_unit_indices[future_board[target_index].id] =  -1
-    }
+        if(future_board[start_index].ucolor === "black"){
+            if(future_board[start_index].id !== -1)
+                future_black_unit_indices[future_board[start_index].id] =  target_index
+            if(future_board[target_index].id !== -1)
+                future_black_unit_indices[future_board[target_index].id] =  -1
+        }
 
     future_board[start_index].index = future_board[target_index].index
     future_board[target_index]  = future_board[start_index]
@@ -458,25 +450,25 @@ function is_check(start_index, target_index, board, color){
     var threatened = -1
 
     if(color === "white")
-    future_black_unit_indices.forEach(function(uindex) {
+        future_black_unit_indices.forEach(function(uindex) {
 
-        if(is_valid_mv(uindex, white_king_pos, future_board)){
+            if(is_valid_mv(uindex, white_king_pos, future_board)){
 
-            threatened = w_king_pos
+                threatened = w_king_pos
 
-        }
-    })
+            }
+        })
 
     if(color === "black")
-    future_white_unit_indices.forEach(function(uindex) {
+        future_white_unit_indices.forEach(function(uindex) {
 
 
-        if(is_valid_mv(uindex, black_king_pos, future_board)){
+            if(is_valid_mv(uindex, black_king_pos, future_board)){
 
 
-            threatened = b_king_pos
-        }
-    })
+                threatened = b_king_pos
+            }
+        })
 
     player_turn = tmp_turn
     return threatened
@@ -518,6 +510,7 @@ function is_valid_mv(start_index, target_index, board){
         cd1 = is_valid_vertical(start_index, target_index, board)
         cd2 = is_valid_horizontal(start_index, target_index, board)
         cd3 = is_valid_diagonal(start_index, target_index, board)
+
         return cd1 || cd2 || cd3
 
     case "queen":

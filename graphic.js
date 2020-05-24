@@ -1,7 +1,3 @@
-.import "logic.js" as Logic
-
-var index = 0;
-
 
 // TO-DO, [color costomization]
 // TO-Do, statistics
@@ -34,7 +30,7 @@ function add_last_move(){
     col = String.fromCharCode('a'.charCodeAt(0) + to_index % 8)
     var to =  col + (8 - Math.floor(to_index / 8))
 
-    var move =   from + '->' + to
+    var move = from + '->' + to
     if(l_board[dropped_ind].ucolor === "black"){
         if(black_last_5_moves.count === 5) {
             black_last_5_moves.remove(0)
@@ -63,6 +59,7 @@ function unit_src(index){
     if(str2 === "empty") return ""
     return "images/" + str1 + str2
 }
+
 
 function hover_cell(){
     var index = bg_grid.indexAt(marea.prev_x, marea.prev_y)
