@@ -25,6 +25,13 @@ RESOURCES += \
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
 
+OTHER_FILES += \
+    "Android Sources/AndroidManifest.xml"
+
+ANDROID_PACKAGE_SOURCE_DIR = "$$PWD/Android Sources"
+
+
+
 # Additional import path used to resolve QML modules just for Qt Quick Designer
 QML_DESIGNER_IMPORT_PATH =
 
@@ -34,6 +41,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
+    Android Sources/AndroidManifest.xml \
     graphic.js \
     board.qml \
     Units.qml \

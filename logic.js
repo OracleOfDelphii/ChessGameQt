@@ -78,12 +78,16 @@ function is_valid_jump(start_index, target_index, board){
     return false;
 }
 
+// this function always starts from upper position on the board to the lower position and
+// checks if they can meet together with a vertical move of starter
 function is_valid_vertical(start_index, target_index, board){
 
     var start_unit = board[start_index]
     var tar_unit = board[target_index]
     var up_unit= board[Math.max(start_index, target_index)]
     var lp_unit = board[Math.min(start_index, target_index)]
+    var up_index = Math.max(start_index, target_index)
+    var lp_index = Math.min(start_index, target_index)
     var king = start_unit.utype === "king"
     var soldier = start_unit.utype === "soldier"
     var dist = Math.abs(start_index - target_index)
@@ -113,6 +117,7 @@ function is_valid_vertical(start_index, target_index, board){
         }
     }
     var found = false
+
     for(var i = Math.max(start_index, target_index) - 8; i >= Math.min(start_index, target_index); i-=8){
         // fix later
         if(up_unit.utype !== "empty"){
@@ -141,16 +146,29 @@ function is_valid_vertical(start_index, target_index, board){
     return true;
 }
 
+
+//! this function always starts from upper position on the board to the lower position and
+// checks if they can meet together with a horizontal move of starter
+
+// bugggg
 function is_valid_horizontal(start_index, target_index, board){
 
     var start_unit = board[start_index]
     var tar_unit = board[target_index]
     var up_unit= board[Math.max(start_index, target_index)]
     var lp_unit = board[Math.min(start_index, target_index)]
+    var up_pos = Math.max(start_index, target_index)
+    var lp_pos = Math.max(start_index, target_index)
+
     var king = start_unit.utype === "king"
     var dist = Math.abs(start_index - target_index)
     if(king){
         if(dist > 1) return false
+    }
+
+
+    if(Math.floor(up_pos / 8) !== Math.floor(lp_pos / 8)){
+        return false
     }
 
     var found = false
@@ -178,7 +196,8 @@ function is_valid_horizontal(start_index, target_index, board){
     return true;
 }
 
-
+//! this function always starts from upper position on the board to the lower position and
+// checks if they can meet together with a diagonal move of starter
 function is_valid_diagonal(start_index, target_index, board){
     var start_unit = board[start_index]
     var tar_unit = board[target_index]
@@ -256,10 +275,9 @@ function is_valid_diagonal(start_index, target_index, board){
                 if(i === Math.min(start_index, target_index)) found = true
             }
         }
-
         if(!found) return false
-
     }
+
     if(tar_unit.ucolor === start_unit.ucolor){
 
         return false;
@@ -411,14 +429,12 @@ function is_check(start_index, target_index, board, color){
     var white_king_pos = w_king_pos
     var black_king_pos = b_king_pos
 
-
     if(start_index === w_king_pos){
         white_king_pos = target_index
     }
     if(start_index === b_king_pos){
         black_king_pos = target_index
     }
-
 
     if(color === "black")
     if(future_board[start_index].ucolor === "white"){
@@ -440,6 +456,7 @@ function is_check(start_index, target_index, board, color){
     future_board[start_index] =  empty_unit(-1)
 
     var threatened = -1
+
     if(color === "white")
     future_black_unit_indices.forEach(function(uindex) {
 
@@ -472,6 +489,7 @@ function get_unit_type(index){
 
 //! start_index, target_index are positions in board
 function is_valid_mv(start_index, target_index, board){
+
     var start_unit = board[start_index]
     var tar_unit = board[target_index]
     var cl = player_turn == 0 ? "white" : "black"
@@ -480,13 +498,7 @@ function is_valid_mv(start_index, target_index, board){
     if(start_unit === undefined){
         return false
     }
-
-    //if(start_unit.ucolor !== cl){
-    //  return false
-    // }
-
-
-
+    //! conditions to check different kind of movements
     var cd1, cd2, cd3, cd4
     switch(start_unit.utype){
     case "soldier":
