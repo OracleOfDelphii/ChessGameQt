@@ -7,20 +7,14 @@ import QtQuick.Controls 2.12
 import "graphic.js" as Graphic
 import "logic.js" as Logic
 
-// needs refactor, seperate ui from logic
 /*
  The graphic has three parts so far:
     grid for units
     grid for background
-    A row for additional things(like score, ...)
-    grid for background is almost static, it can only change color when units are being moved
-    grid for units is dynamic
+    two Flow layouts for additional things(movements, score, ...)
 */
 
-
-
 // problem with rotation, either turn off rotation or make it responsive
-// fix anything that is hard-coded
 
 // To-Do rotation + starter(default white)
 
@@ -45,16 +39,21 @@ Window {
     property var starter : "white"
 
 
-    // for more performance on check-mate
-    // index of their current cell
     property int b_king_pos
     property int w_king_pos
     property QtObject b_king_bg
     property QtObject w_king_bg
     property int threatened_king : -1
 
-    property var white_unit_indices : []
-    property var black_unit_indices : []
+    // better idea
+    property int b_king_id
+    property int w_king_id
+    //
+
+
+
+    property var white_unit_indices : [16]
+    property var black_unit_indices : [16]
 
 
     ColumnLayout{
@@ -133,28 +132,31 @@ Window {
                 onReleased: {
 
                     dropped_ind = bg_grid.indexAt(mouseX, mouseY)
-                    bgModel.set(dropped_ind, {"bcolor": "Purple"})
+                    if(dropped_ind !== threatened_king){
+                        bgModel.set(dropped_ind, {"bcolor": "Purple"})
+                        console.log(dropped_ind + " " + threatened_king + "EEE")
+                    }
                     var dropped_unit = grid16.itemAt(mouseX, mouseY)
                     var start_unit = l_board[grabbed_ind]
                     var cl = player_turn === 0 ? "white" : "black"
+                    var op_cl = player_turn === 0 ? "black" : "white"
                     var prev_threatened_king = threatened_king
-                    threatened_king = Logic.checked_king(grabbed_ind, dropped_ind, l_board)
-                    var threatened_king_color = ""
-                    if(threatened_king !== -1){
-                        threatened_king_color = l_board[threatened_king].ucolor
-                    }
+                    var op_threated = -1
+
                     if(start_unit.ucolor === cl){
 
-                        if(threatened_king_color !== start_unit.ucolor){
+                        if(Logic.is_valid_mv(grabbed_ind, dropped_ind, l_board)){
+                            threatened_king = Logic.is_check(grabbed_ind, dropped_ind, l_board, cl)
+                            if(threatened_king === -1){
+                                op_threated = Logic.is_check(grabbed_ind, dropped_ind, l_board, op_cl)
 
-                            if(Logic.is_valid_mv(grabbed_ind, dropped_ind, l_board)){
                                 if(prev_threatened_king !== -1){
                                     bgModel.set(prev_threatened_king, {"bcolor": Graphic.cell_color(prev_threatened_king)})
                                 }
 
                                 if(l_board[grabbed_ind].ucolor === "white"){
                                     white_unit_indices[l_board[grabbed_ind].id] =  dropped_ind
-                                }
+                    console.log(threatened_king + " " + grabbed_ind + "::")                }
                                 if(l_board[grabbed_ind].ucolor === "black"){
                                     black_unit_indices[l_board[grabbed_ind].id] = dropped_ind
                                 }
@@ -171,7 +173,7 @@ Window {
                                 }
 
                                 dropped_unit.src = ""
-                                Graphic.add_last5_move()
+                                Graphic.add_last_move()
                                 players[player_turn].inc_mv_num()
                                 if(player_turn == 0){
                                     player_turn = 1
@@ -192,67 +194,33 @@ Window {
 
                         }
 
-                        if(threatened_king === -1){
+                        if(op_threated === -1 && threatened_king === -1){
                             bgModel.set(w_king_pos, {"bcolor":  Graphic.cell_color(w_king_pos)  })
                             bgModel.set(b_king_pos, {"bcolor":  Graphic.cell_color(b_king_pos)  })
                         }
-                        else{
-                            bgModel.set(threatened_king, {"bcolor":  "Orange"  })
+                        else if(op_threated !== -1){
+                            bgModel.set(op_threated, {"bcolor":  "Orange"  })
+                            threatened_king = op_threated
                         }
-
                     }
-
-
-
-
                 }
 
                 onPressed: {
-
-                    bgModel.set(grabbed_ind, {"bcolor": Graphic.cell_color(grabbed_ind)})
-                    bgModel.set(dropped_ind, {"bcolor": Graphic.cell_color(dropped_ind)})
+                    if(grabbed_ind !== threatened_king)
+                        bgModel.set(grabbed_ind, {"bcolor": Graphic.cell_color(grabbed_ind)})
+                    if(dropped_ind !== threatened_king)
+                        bgModel.set(dropped_ind, {"bcolor": Graphic.cell_color(dropped_ind)})
                     grabbed_ind = grid16.indexAt(mouseX, mouseY)
-                    bgModel.set(grabbed_ind, {"bcolor":  "Purple"  })
-                    if(l_board[grabbed_ind].ucolor === "white"){
+                    if(grabbed_ind !== threatened_king){
+                        bgModel.set(grabbed_ind, {"bcolor":  "Purple"  })
+
+                    }
+                        if(l_board[grabbed_ind].ucolor === "white"){
                         white_unit_indices[l_board[grabbed_ind].id] =  grabbed_ind
                     }
                     if(l_board[grabbed_ind].ucolor === "black"){
                         black_unit_indices[l_board[grabbed_ind].id] = grabbed_ind
                     }
-                }
-
-                onPositionChanged: {
-                    /*
-                    // index of previous visited cell(hover)
-                    if(prev_x != -1 && prev_y != -1){
-                        var prev_cell = bg_grid.itemAt(prev_x, prev_y)
-                        var prev_index = bg_grid.indexAt(prev_x, prev_y)
-                        var current_index = bg_grid.indexAt(mouseX, mouseY)
-                        var cond =  threatened_king === prev_index
-                        var cond2 = threatened_king === prev_index
-
-
-                        if( typeof(prev_cell) !== "null"){
-                            if(!cond2)
-                            if(prev_cell !== grabbed_ind){
-                                prev_cell.cl = Graphic.cell_color(prev_index)
-                            }
-
-
-
-
-                            if(!cond)
-                            if(bg_grid.indexAt(marea.mouseX,marea.mouseY) !== grabbed_ind) {
-                                bg_grid.itemAt(marea.mouseX,marea.mouseY).cl = "Blue"
-                                // bug on android since there is no hover
-                            }
-                        }
-                    }
-                    prev_x = mouseX
-                    prev_y = mouseY
-
-
-*/
                 }
 
             }
@@ -272,7 +240,6 @@ Window {
                     width: 48
                     height: 48
                     property string cl : bcolor
-
 
                     Rectangle{
                         z: 0
@@ -315,6 +282,7 @@ Window {
                     }
                 }
             }
+
             ListModel {
                 id: bgModel
                 Component.onCompleted: {
