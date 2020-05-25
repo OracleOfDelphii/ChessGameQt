@@ -1,12 +1,19 @@
-
+.import "logic.js" as Logic
 // TO-DO, [color costomization]
-// TO-Do, statistics
-
 
 //! returns color of a cell specified with index of chess background
 function cell_color(index) {
+    if(index === -1) return ""
     var color1 = "Black"
     var color2 = "Gray"
+    if(index === threatened_king){
+        return "Orange"
+    }
+    if(grabbed_ind === index || dropped_ind === index){
+        return "purple"
+    }
+
+
     var row = Math.floor(index / 8) ;
     var col = index - (row - 1) * 8;
     if(row % 2 == 0){
@@ -21,16 +28,8 @@ function cell_color(index) {
 
 //! adds last move to last 5 move lists
 function add_last_move(){
+    var move = Logic.move_str(grabbed_ind, dropped_ind)
 
-    var from_index = grabbed_ind
-    var col = String.fromCharCode('a'.charCodeAt(0) + from_index % 8)
-    var from =  col + (8 - Math.floor(from_index / 8))
-
-    var to_index = dropped_ind
-    col = String.fromCharCode('a'.charCodeAt(0) + to_index % 8)
-    var to =  col + (8 - Math.floor(to_index / 8))
-
-    var move = from + '->' + to
     if(l_board[dropped_ind].ucolor === "black"){
         if(black_last_5_moves.count === 5) {
             black_last_5_moves.remove(0)
@@ -60,12 +59,24 @@ function unit_src(index){
     return "images/" + str1 + str2
 }
 
+function move(start_index, target_index){
+    if( start_index < target_index){
+        boardModel.move(start_index, target_index, 1)
+
+        boardModel.move(target_index - 1, start_index, 1)
+    }
+    else{
+        boardModel.move(target_index, start_index, 1)
+        boardModel.move(start_index - 1, target_index, 1)
+    }
+}
+
 
 function hover_cell(){
     var index = bg_grid.indexAt(marea.prev_x, marea.prev_y)
     if(index >= 0 && index <= 63){
         if(bg_grid.indexAt(prev_x, marea.prev_y) !== grabbed_ind)
-            bg_grid.itemAt(prev_x, marea.prev_y).cl = Graphic.cell_color(index)
+            bg_grid.itemAt(prev_x, marea.prev_y).cl = cell_color(index)
         if(bg_grid.indexAt(marea.mouseX, marea.mouseY) !== grabbed_ind)
             bg_grid.itemAt(marea.mouseX, marea.mouseY).cl = "Blue"
         // bug on android since there is no hover

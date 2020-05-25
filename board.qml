@@ -42,7 +42,7 @@ Window {
         id: maingrid
         width: parent.width
         height: parent.height
-       /* Rectangle{
+        /* Rectangle{
             visible: false
             Layout.fillHeight: true
             Layout.fillWidth:  true
@@ -165,96 +165,21 @@ Window {
 
                     onReleased: {
                         dropped_ind = bg_grid.indexAt(mouseX, mouseY)
-                        var dropped_unit = l_board[dropped_ind]
-                        var grabbed_unit = l_board[grabbed_ind]
                         var dropped_cell = grid16.itemAt(mouseX, mouseY)
-                        var cl = players[player_turn].ucolor
-                        var op_cl = cl === "white" ? "black" : "white"
 
-                        if(dropped_ind !== threatened_king){
-                            bgModel.set(dropped_ind, {"bcolor": "Purple"})
-                        }
-
-                        if(grabbed_unit.ucolor === players[player_turn].ucolor){
-                            var valid_move = Logic.is_valid_mv(grabbed_ind, dropped_ind, l_board)
-                            var threated = Logic.check(grabbed_ind, dropped_ind, l_board, cl)
-
-                            if(valid_move && (threated === -1)){
-
-                                if(grabbed_ind === b_king_pos){
-                                    b_king_pos = dropped_ind
-                                }
-
-                                if(grabbed_ind === w_king_pos){
-                                    w_king_pos = dropped_ind
-                                }
-
-                                var threatened = Logic.check(grabbed_ind, dropped_ind, l_board, op_cl)
-
-                                if(threatened_king !== -1)
-                                    bgModel.set(threatened_king, {"bcolor": Graphic.cell_color(threatened_king)})
-
-                                if(threatened !== -1){
-                                    bgModel.set(threatened, {"bcolor": "Orange"})
-                                    threatened_king = threatened
-                                }
-
-                                if(grabbed_unit.ucolor === "white"){
-                                    white_unit_indices[l_board[grabbed_ind].id] = dropped_ind
-                                    white_unit_indices[l_board[dropped_ind].id] = -1
-                                }
-                                if(grabbed_unit.ucolor === "black"){
-                                    black_unit_indices[l_board[grabbed_ind].id] = dropped_ind
-                                    black_unit_indices[l_board[dropped_ind].id] = -1
-                                }
-
-
-                                if(player_turn == 0){
-                                    player_turn = 1
-                                }
-                                else{
-                                    player_turn = 0
-                                }
-
-
-                                l_board[grabbed_ind].index = dropped_ind
-                                   l_board[dropped_ind] = l_board[grabbed_ind]
-                                l_board[grabbed_ind] = Logic.empty_unit(-1)
-
-                                dropped_cell.src = ""
-                                Graphic.add_last_move()
-
-                                players[player_turn].inc_mv_num()
-
-                                if( grabbed_ind < dropped_ind){
-                                    boardModel.move(grabbed_ind, dropped_ind, 1)
-
-                                    boardModel.move(dropped_ind - 1, grabbed_ind, 1)
-                                }
-                                else{
-                                    boardModel.move(dropped_ind, grabbed_ind, 1)
-                                    boardModel.move(grabbed_ind - 1, dropped_ind, 1)
-                                }
-                            }
+                        if(Logic.try_move(grabbed_ind, dropped_ind)){
+                            dropped_cell.src = ""
+                            Graphic.add_last_move()
+                            // transition in graphical board
+                            Graphic.move(grabbed_ind, dropped_ind)
                         }
                     }
 
                     onPressed: {
-                        if(grabbed_ind !== threatened_king){
-                            bgModel.set(
-                                        grabbed_ind, {"bcolor": Graphic.cell_color(grabbed_ind)
-                                        })
-                        }
-                        if(dropped_ind !== threatened_king){
-                            bgModel.set(
-                                        dropped_ind, {"bcolor": Graphic.cell_color(dropped_ind)
-                                        })
-                        }
+
+                        dropped_ind = -1
                         grabbed_ind = grid16.indexAt(mouseX, mouseY)
 
-                        if(grabbed_ind !== threatened_king){
-                            bgModel.set(grabbed_ind, {"bcolor":  "Purple"})
-                        }
                         if(l_board[grabbed_ind].ucolor === "white"){
                             white_unit_indices[l_board[grabbed_ind].id] =  grabbed_ind
                         }
@@ -279,7 +204,7 @@ Window {
                         id: cell_bg
                         width: 48
                         height: 48
-                        property string cl : bcolor
+                        property string cl : Graphic.cell_color(number)
 
                         Rectangle{
                             z: 0
@@ -330,6 +255,8 @@ Window {
                             append({"number": i , "bcolor": Graphic.cell_color(i)})
                         }
                     }
+
+
                 }
 
                 ListModel {

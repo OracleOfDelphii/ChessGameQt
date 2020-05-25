@@ -12,14 +12,90 @@ class Player {
         this.draw_cnt = 0
     }
     // get number of movements this player made
-    get mv_num(){
-        return this.move_num
+    get move_num(){
+        return this.move_history.length
+    }
+    // adds a move to player move history
+    add_move(move){
+        this.move_history.push(move)
     }
 
-    // number of movements this player has so far will be increased by 1
-    inc_mv_num(){
-        this.move_num = this.move_num + 1
+    print_history(){
+      for(var i = 0; i < this.move_history.length; i++){
+            console.log(this.move_history[i])
+        }
     }
+
+}
+
+function try_move(start_index, target_index){
+    var dropped_unit = l_board[target_index]
+    var grabbed_unit = l_board[start_index]
+    var cl = players[player_turn].ucolor
+    var op_cl = cl === "white" ? "black" : "white"
+
+    if(grabbed_unit.ucolor === players[player_turn].ucolor){
+        var valid_move = Logic.is_valid_mv(start_index, target_index, l_board)
+        var threated = Logic.check(start_index, target_index, l_board, cl)
+        if(valid_move && (threated === -1)){
+            threatened_king = -1
+            if(start_index === b_king_pos){
+                b_king_pos = target_index
+            }
+
+            if(start_index === w_king_pos){
+                w_king_pos = target_index
+            }
+
+            var threatened = check(start_index, target_index, l_board, op_cl)
+
+
+            if(threatened !== -1){
+
+                threatened_king = threatened
+            }
+
+            if(grabbed_unit.ucolor === "white"){
+                white_unit_indices[l_board[start_index].id] = target_index
+                white_unit_indices[l_board[target_index].id] = -1
+            }
+            if(grabbed_unit.ucolor === "black"){
+                black_unit_indices[l_board[start_index].id] = target_index
+                black_unit_indices[l_board[target_index].id] = -1
+            }
+
+
+            if(player_turn == 0){
+                player_turn = 1
+            }
+            else{
+                player_turn = 0
+            }
+
+            // move in logical board
+            l_board[start_index].index = target_index
+            l_board[target_index] = l_board[start_index]
+            l_board[start_index] = empty_unit(-1)
+            players[player_turn].add_move(move_str(start_index, target_index))
+
+
+            return true
+        }
+
+    }
+    return false
+}
+
+function move_str(start_index, target_index){
+    var from_index = start_index
+    var col = String.fromCharCode('a'.charCodeAt(0) + from_index % 8)
+    var from =  col + (8 - Math.floor(from_index / 8))
+
+    var to_index = target_index
+    col = String.fromCharCode('a'.charCodeAt(0) + to_index % 8)
+    var to =  col + (8 - Math.floor(to_index / 8))
+    var move = from + '->' + to
+    return move
 }
 
 class Game{
@@ -30,6 +106,7 @@ class Game{
         this.player1 = player1
         this.player2 = player2
     }
+
     load(Path){
 
     }
@@ -334,13 +411,14 @@ function create_table(){
                 white_unit_indices[cnt] = i
                 cnt++; break;
             case 59:
-                un = new Unit("white", "queen", i, cnt)
+                un = new Unit("white", "king", i, cnt)
+                w_king_pos = index
                 board.push(un)
                 white_unit_indices[cnt] = i
                 cnt++; break;
             case 60:
-                un = new Unit("white", "king", i, cnt)
-                w_king_pos = index
+                un = new Unit("white", "queen", i, cnt)
+
                 white_unit_indices[cnt] = i
                 board.push(un)
                 cnt++; break;
@@ -377,13 +455,14 @@ function create_table(){
                 black_unit_indices[cnt] = i
                 cnt++; break;
             case 3:
-                un = new Unit("black", "queen", i, cnt)
+                un = new Unit("black", "king", i, cnt)
+                b_king_pos = index
                 board.push(un)
                 black_unit_indices[cnt] = i
                 cnt++; break;
             case 4:
-                un = new Unit("black", "king", i, cnt)
-                b_king_pos = index
+                un = new Unit("black", "queen", i, cnt)
+
                 black_unit_indices[cnt] = i
                 board.push(un)
                 cnt++; break;
@@ -420,9 +499,6 @@ function check(start_index, target_index, board, color){
     var tmp_turn = player_turn
     var white_king_pos = w_king_pos
     var black_king_pos = b_king_pos
-
-    console.log(w_king_pos)
-    console.log(b_king_pos)
 
     if(start_index === w_king_pos){
         white_king_pos = target_index
