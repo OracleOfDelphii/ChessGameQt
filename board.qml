@@ -162,6 +162,7 @@ Window {
                     property  int  prev_x: -1
                     property int prev_y: -1
 
+
                     onReleased: {
                         dropped_ind = bg_grid.indexAt(mouseX, mouseY)
                         var dropped_unit = l_board[dropped_ind]
@@ -176,13 +177,14 @@ Window {
 
                         if(grabbed_unit.ucolor === players[player_turn].ucolor){
                             var valid_move = Logic.is_valid_mv(grabbed_ind, dropped_ind, l_board)
-                            var threated = Logic.check(grabbed_ind, dropped_ind , l_board, cl)
-                            console.log(valid_move + " " + threated)
+                            var threated = Logic.check(grabbed_ind, dropped_ind, l_board, cl)
+
                             if(valid_move && (threated === -1)){
 
                                 if(grabbed_ind === b_king_pos){
                                     b_king_pos = dropped_ind
                                 }
+
                                 if(grabbed_ind === w_king_pos){
                                     w_king_pos = dropped_ind
                                 }
@@ -221,6 +223,7 @@ Window {
 
                                 dropped_cell.src = ""
                                 Graphic.add_last_move()
+
                                 players[player_turn].inc_mv_num()
 
                                 if( grabbed_ind < dropped_ind){
