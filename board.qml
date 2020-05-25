@@ -14,6 +14,7 @@ import "logic.js" as Logic
     two Flow layouts for additional things(movements, score, ...)
 */
 
+// TO-DO scalabillity
 // TO-DO Optional starter-color
 Window {
     id: main
@@ -21,9 +22,9 @@ Window {
     visible: true
     title: qsTr("Chess game")
     height: 454
-    width: 424
-    property int dropped_ind: 0
-    property int grabbed_ind: 0
+    width: 384
+    property int dropped_ind: -1
+    property int grabbed_ind: -1
     property bool is_dropped: false
     property var l_board:  Logic.create_table()
     property var players: Logic.create_player()
@@ -84,6 +85,7 @@ Window {
 
         */
         ColumnLayout{
+            spacing: 4.7
             Layout.row: 0
             Layout.column:  0
             Rectangle{
@@ -101,9 +103,9 @@ Window {
 
                 ListView {
                     id: top_bar
-                    x: 0
+                    x: 8
                     y: 5
-                    width: parent.width
+                    width: 368
                     height: 30
                     contentHeight: 0
                     orientation: ListView.Horizontal
@@ -135,6 +137,8 @@ Window {
                     x: 0
                     width: 384
                     height: 30
+                    enabled: true
+                    spacing: 3
                     leftPadding: 4
                     visible: true
                     rightPadding: 4
@@ -150,6 +154,7 @@ Window {
                 id: game_area
                 y: 30
                 height: 384
+
                 MouseArea{
                     rotation: 0
                     id: marea
@@ -278,9 +283,9 @@ Window {
                 visible: true
                 ListView {
                     id: bottom_bar
-                    x: 0
+                    x: 8
                     y: 5
-                    width: 384
+                    width: 368
                     height: 30
                     orientation: ListView.Horizontal
                     visible: true
@@ -308,9 +313,9 @@ Window {
 
                 Flow {
                     id: flow_bottom
-                    x: 0
                     width: 384
                     height: 30
+                    spacing: 5
                     leftPadding: 4
                     visible: true
                     rightPadding: 4

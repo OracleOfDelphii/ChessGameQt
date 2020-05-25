@@ -94,7 +94,7 @@ function move_str(start_index, target_index){
     var to_index = target_index
     col = String.fromCharCode('a'.charCodeAt(0) + to_index % 8)
     var to =  col + (8 - Math.floor(to_index / 8))
-    var move = from + '->' + to
+    var move = from + '.' + to
     return move
 }
 
