@@ -319,7 +319,11 @@ function is_valid_diagonal(start_index, target_index, board){
             if(start_unit !== up_unit){
                 return false
             }
-
+        }
+        else{
+            if(start_unit !== lp_unit){
+                return false
+            }
         }
     }
 
