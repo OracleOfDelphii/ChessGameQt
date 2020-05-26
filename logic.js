@@ -535,7 +535,6 @@ function check(start_index, target_index, board, color){
         future_black_unit_indices.forEach(function(uindex) {
 
             if(is_valid_mv(uindex, white_king_pos, future_board)){
-                console.log("attacker:" + uindex + " " + "king position" + white_king_pos)
                 threatened = w_king_pos
 
             }
@@ -545,7 +544,6 @@ function check(start_index, target_index, board, color){
         future_white_unit_indices.forEach(function(uindex) {
 
             if(is_valid_mv(uindex, black_king_pos, future_board)){
-                console.log("attacker:" + uindex + " " + "king position" + black_king_pos)
                 threatened = b_king_pos
             }
         })

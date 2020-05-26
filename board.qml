@@ -14,8 +14,7 @@ import "logic.js" as Logic
     two Flow layouts for additional things(movements, score, ...)
 */
 
-// TO-DO scalabillity
-// TO-DO Optional starter-color
+
 Window {
     id: main
     color: "black"
@@ -43,47 +42,7 @@ Window {
         id: maingrid
         width: parent.width
         height: parent.height
-        /* Rectangle{
-            visible: false
-            Layout.fillHeight: true
-            Layout.fillWidth:  true
-            Layout.row : 0
-            Layout.column: 1
 
-            color: "white"
-
-            Item{
-                width: parent.width
-                height: parent.height
-
-                Rectangle{
-                    id:rightMenu
-                    height: parent.height
-                    color: "#070909"
-                    width:parent.width
-                    Text{
-                        text:players[1].name
-                        font.pixelSize: 20
-                        font.bold: true
-                        y:10 + this.height
-                        color: "#20caca"
-                        x:10
-                    }
-                    Text{
-
-                        text:players[0].name
-                        font.pixelSize: 20
-                        font.bold: true
-                        y:parent.height - this.height - 10
-                        color: "#a12a2a"
-                        x:10
-
-                    }
-                }
-            }
-        }
-
-        */
         ColumnLayout{
             spacing: 4.7
             Layout.row: 0
@@ -143,11 +102,7 @@ Window {
                     visible: true
                     rightPadding: 4
                     topPadding: 5
-
-
                 }
-
-
             }
 
             Item{
@@ -197,6 +152,7 @@ Window {
 
                 GridView{
                     rotation: 0
+
                     id: bg_grid
                     cellWidth:  48
                     cellHeight: 48
