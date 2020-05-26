@@ -34,9 +34,9 @@ Window {
     property int b_king_pos
     property int w_king_pos
     property int threatened_king : -1
+    property var danger_zone : []
     property var white_unit_indices : [16]
     property var black_unit_indices : [16]
-
 
 
     GridLayout {

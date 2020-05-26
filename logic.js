@@ -25,7 +25,6 @@ class Player {
             console.log(this.move_history[i])
         }
     }
-
 }
 
 function try_move(start_index, target_index){
@@ -208,7 +207,6 @@ function is_valid_vertical(start_index, target_index, board){
         if(dist !== 8) return false
     }
 
-    // bug
     if(soldier){
         var cl = start_unit.ucolor
         if(tar_unit.utype !== "empty"){

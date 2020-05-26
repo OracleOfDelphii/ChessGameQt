@@ -15,7 +15,5 @@ int main(int argc, char *argv[])
 
     process1.setStandardOutputProcess(&process2);
 
-
-
     return app.exec();
 }
