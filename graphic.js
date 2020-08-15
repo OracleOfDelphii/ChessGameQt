@@ -2,7 +2,7 @@
 // TO-DO, [color costomization]
 
 //! returns color of a cell specified with index of chess background
-function cell_color(index) {
+function cell_color(index){
     if(index === -1) return ""
     var color1 = "Black"
     var color2 = "Gray"
@@ -13,7 +13,7 @@ function cell_color(index) {
         return "purple"
     }
 
-    var row = Math.floor(index / 8) ;
+    var row = Math.floor(index / 8);
     var col = index - (row - 1) * 8;
     if(row % 2 == 0){
         if(col % 2 == 0) return color1

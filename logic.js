@@ -21,19 +21,22 @@ class Player {
     }
 
     print_history(){
-      for(var i = 0; i < this.move_history.length; i++){
+        for(var i = 0; i < this.move_history.length; i++){
             console.log(this.move_history[i])
         }
     }
 }
 
 function try_move(start_index, target_index){
-    var dropped_unit = l_board[target_index]
-    var grabbed_unit = l_board[start_index]
+    // start_unit is the unit that player wants to move
+    // target_unit is the unit in target_cell, if
+    // the target is empty, there is an empty unit there
+    var target_unit = l_board[target_index]
+    var start_unit = l_board[start_index]
     var cl = players[player_turn].ucolor
     var op_cl = cl === "white" ? "black" : "white"
 
-    if(grabbed_unit.ucolor === players[player_turn].ucolor){
+    if(start_unit.ucolor === players[player_turn].ucolor){
         var valid_move = Logic.is_valid_mv(start_index, target_index, l_board)
         var threated = Logic.check(start_index, target_index, l_board, cl)
         if(valid_move && (threated === -1)){
@@ -52,13 +55,17 @@ function try_move(start_index, target_index){
             if(threatened !== -1){
 
                 threatened_king = threatened
+                if(is_mate(start_index, board)){
+                    console.log("THE END");
+                    return false;
+                }
             }
 
-            if(grabbed_unit.ucolor === "white"){
+            if(start_unit.ucolor === "white"){
                 white_unit_indices[l_board[start_index].id] = target_index
                 white_unit_indices[l_board[target_index].id] = -1
             }
-            if(grabbed_unit.ucolor === "black"){
+            if(start_unit.ucolor === "black"){
                 black_unit_indices[l_board[start_index].id] = target_index
                 black_unit_indices[l_board[target_index].id] = -1
             }
@@ -88,6 +95,7 @@ function try_move(start_index, target_index){
 function move_str(start_index, target_index){
     var from_index = start_index
     var col = String.fromCharCode('a'.charCodeAt(0) + from_index % 8)
+
     var from =  col + (8 - Math.floor(from_index / 8))
 
     var to_index = target_index
@@ -106,13 +114,13 @@ class Game{
         this.player2 = player2
     }
 
-    load(Path){
+    loadGame(savefile_path){
 
     }
-    save(Path){
+    saveGame(to_destination){
 
     }
-    reset(){
+    resetGame(){
 
     }
     newPlayer(){
@@ -155,12 +163,111 @@ class Unit {
 }
 
 //! TO-DO
-function is_mate(){
+function is_mate(start_index, board){
+    var start_unit = board[start_index]
+    var tar_king_index;
+    var attacking_unit_indices;
+    var attack_unit_color = start_unit.color;
+    if(attack_unit_color === "black"){
+        tar_king_index = w_king_pos;
+        attacking_unit_indices = white_unit_indices;
+    }
+    else{
+        tar_unit = b_king_pos;
+        attacking_unit_indices = black_unit_indices;
+    }
 
+    // first check if king can move
+    if(is_valid_mv(tar_king_index, tar_king_index + 1, board) &&
+            !check(tar_king_index, tar_king_index + 1, board, "white")){
+        return false;
+    }
+    if(is_valid_mv(tar_king_index, tar_king_index - 1, board) &&
+            !check(tar_king_index, tar_king_index - 1, board, "white")){
+        return false;
+    }
+    if(is_valid_mv(tar_king_index, tar_king_index + 8, board) &&
+            !check(tar_king_index, tar_king_index + 8, board, "white")){
+        return false;
+    }
+    if(is_valid_mv(tar_king_index, tar_king_index - 8, board) &&
+            !check(tar_king_index, tar_king_index - 8, board, "white")){
+        return false;
+    }
+
+    // check if attacking unit can be killed
+    attacking_unit_indices.forEach(function(uindex) {
+
+        if(is_valid_mv(uindex, start_index, future_board)){
+            if(!check(uindex, start_index, board, attack_unit_color)){
+                return false;
+            }
+        }
+    })
+
+    // check if something can go between them
+    // if the threatener is horse and
+    // horse can not be killed, it's checkmate.
+    if(start_unit.utype === "horse"){
+        console.log("END");
+        return true;
+    }
+
+    var up_index = Math.max(start_index, target_index)
+    var lp_index = Math.min(start_index, target_index)
+
+    // lets see if with diagonal move, king can be rescued or not.
+    if(Math.abs(up_index % 8 - lp_index % 8) === Math.abs(up_index /
+                                                          8 - lp_index / 8)){
+        if(start_unit.utype === "bishop" || start_unit.utype === "queen"){
+            if(up_index % 8 < lp_index){
+                // \
+                for(var j = up_index - 9; j > lp_index; j -= 9){
+                    attacking_unit_indices.forEach(function(uindex) {
+                        if(is_valid_mv(uindex, j, future_board)){
+                            if(!check(uindex, j, board, attack_unit_color)){
+                                return false;
+                            }
+                        }
+                    })
+
+                }
+
+
+            }
+            else if(up_index % 8 > lp_index){
+                // /
+                for(j = up_index - 7; j > lp_index; j -= 7){
+                    attacking_unit_indices.forEach(function(uindex) {
+                        if(is_valid_mv(uindex, j, future_board)){
+                            if(!check(uindex, j, board, attack_unit_color)){
+                                return false;
+                            }
+                        }
+                    })
+
+                }
+            }
+        }
+        else if(start_unit.utype === "soldier" ||
+                start_unit.utype === "rock" || start_unit.utype === "queen"){
+            for(j = up_index - 8; j > lp_index; j -= 8){
+                    attacking_unit_indices.forEach(function(uindex) {
+                        if(is_valid_mv(uindex, j, future_board)){
+                            if(!check(uindex, j, board, attack_unit_color)){
+                                return false;
+                            }
+                        }
+                    })
+                }
+        }
+    }
+
+    console.log("END2");
+    return true;
 }
 
 //! returns an empty unit to fill the cells with no chess piece
-
 function empty_unit(index){
     return new Unit("", "empty", index)
 }
@@ -373,116 +480,120 @@ function get_unit_index(board, w_unit_indices, b_unit_indices, id){
 
 function create_table(){
     var board = []
-    var cnt = 0
-    for(var i = 0; i <= 63; i++){
-        let un = new Unit()
-        var index = i;
+    // each team has 16 pieces and an array(black_unit_indices or white_unit_indices)
+    // is dedicated to it, index_by_team is an integer between 0 and 16 for
+    // accessing the nth element of these arrays
+    var index_by_team = 0
 
-        if((index > 7 && index <= 15 )) {
-            un = new Unit("black", "soldier", i, cnt)
-            board.push(un)
-            black_unit_indices[cnt] = i
-            cnt++;
+    for(var i = 0; i <= 63; i++){
+        let new_unit = new Unit()
+        var cell_index = i;
+
+        if((cell_index > 7 && cell_index <= 15 )) {
+            new_unit = new Unit("black", "soldier", i, index_by_team)
+            board.push(new_unit)
+            black_unit_indices[index_by_team] = i
+            index_by_team++;
         }
-        else if(index >= 16 && index < 48){
-            cnt = 0
-            un = new Unit("", "empty", index, -1)
-            board.push(un)
+        else if(cell_index >= 16 && cell_index < 48){
+            index_by_team = 0
+            new_unit = new Unit("", "empty", cell_index, -1)
+            board.push(new_unit)
         }
-        else if((index >= 48 && index < 56)) {
-            un = new Unit("white", "soldier", i, cnt)
-            board.push(un)
-            cnt++;
-            white_unit_indices[cnt] = i
+        else if((cell_index >= 48 && cell_index < 56)) {
+            new_unit = new Unit("white", "soldier", i, index_by_team)
+            board.push(new_unit)
+            index_by_team++;
+            white_unit_indices[index_by_team] = i
         }
         else{
-            switch(index){
+            switch(cell_index){
             case 56:
-                un = new Unit("white", "rock", i, cnt)
-                board.push(un)
-                white_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("white", "rock", i, index_by_team)
+                board.push(new_unit)
+                white_unit_indices[index_by_team] = i
+                index_by_team++; break;
             case 57:
-                un = new Unit("white", "horse", i, cnt)
-                board.push(un)
-                white_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("white", "horse", i, index_by_team)
+                board.push(new_unit)
+                white_unit_indices[index_by_team] = i
+                index_by_team++; break;
             case 58:
-                un = new Unit("white", "bishop", i, cnt)
-                board.push(un)
-                white_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("white", "bishop", i, index_by_team)
+                board.push(new_unit)
+                white_unit_indices[index_by_team] = i
+                index_by_team++; break;
             case 59:
-                un = new Unit("white", "king", i, cnt)
-                w_king_pos = index
-                board.push(un)
-                white_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("white", "king", i, index_by_team)
+                w_king_pos = cell_index
+                board.push(new_unit)
+                white_unit_indices[index_by_team] = i
+                index_by_team++; break;
             case 60:
-                un = new Unit("white", "queen", i, cnt)
+                new_unit = new Unit("white", "queen", i, index_by_team)
 
-                white_unit_indices[cnt] = i
-                board.push(un)
-                cnt++; break;
+                white_unit_indices[index_by_team] = i
+                board.push(new_unit)
+                index_by_team++; break;
             case 61:
-                un = new Unit("white", "bishop", i, cnt)
-                board.push(un)
-                white_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("white", "bishop", i, index_by_team)
+                board.push(new_unit)
+                white_unit_indices[index_by_team] = i
+                index_by_team++; break;
             case 62:
-                un = new Unit("white", "horse", i, cnt)
-                board.push(un)
-                white_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("white", "horse", i, index_by_team)
+                board.push(new_unit)
+                white_unit_indices[index_by_team] = i
+                index_by_team++; break;
             case 63:
-                un = new Unit("white", "rock", i, cnt)
-                board.push(un)
-                white_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("white", "rock", i, index_by_team)
+                board.push(new_unit)
+                white_unit_indices[index_by_team] = i
+                index_by_team++; break;
 
 
             case 0:
-                un = new Unit("black", "rock", i, cnt)
-                board.push(un)
-                black_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("black", "rock", i, index_by_team)
+                board.push(new_unit)
+                black_unit_indices[index_by_team] = i
+                index_by_team++; break;
             case 1:
-                un = new Unit("black", "horse", i, cnt)
-                board.push(un)
-                black_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("black", "horse", i, index_by_team)
+                board.push(new_unit)
+                black_unit_indices[index_by_team] = i
+                index_by_team++; break;
             case 2:
-                un = new Unit("black", "bishop", i, cnt)
-                board.push(un)
-                black_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("black", "bishop", i, index_by_team)
+                board.push(new_unit)
+                black_unit_indices[index_by_team] = i
+                index_by_team++; break;
             case 3:
-                un = new Unit("black", "king", i, cnt)
-                b_king_pos = index
-                board.push(un)
-                black_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("black", "king", i, index_by_team)
+                b_king_pos = cell_index
+                board.push(new_unit)
+                black_unit_indices[index_by_team] = i
+                index_by_team++; break;
             case 4:
-                un = new Unit("black", "queen", i, cnt)
+                new_unit = new Unit("black", "queen", i, index_by_team)
 
-                black_unit_indices[cnt] = i
-                board.push(un)
-                cnt++; break;
+                black_unit_indices[index_by_team] = i
+                board.push(new_unit)
+                index_by_team++; break;
             case 5:
-                un = new Unit("black", "bishop", i, cnt)
-                board.push(un)
-                black_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("black", "bishop", i, index_by_team)
+                board.push(new_unit)
+                black_unit_indices[index_by_team] = i
+                index_by_team++; break;
             case 6:
-                un = new Unit("black", "horse", i, cnt)
-                board.push(un)
-                black_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("black", "horse", i, index_by_team)
+                board.push(new_unit)
+                black_unit_indices[index_by_team] = i
+                index_by_team++; break;
             case 7:
-                un = new Unit("black", "rock", i, cnt)
-                board.push(un)
-                black_unit_indices[cnt] = i
-                cnt++; break;
+                new_unit = new Unit("black", "rock", i, index_by_team)
+                board.push(new_unit)
+                black_unit_indices[index_by_team] = i
+                index_by_team++; break;
 
             }
         }
@@ -498,7 +609,6 @@ function check(start_index, target_index, board, color){
     var future_board = Object.assign([], board);
     var future_white_unit_indices = Object.assign([],  white_unit_indices)
     var future_black_unit_indices = Object.assign([],  black_unit_indices)
-    var tmp_turn = player_turn
     var white_king_pos = w_king_pos
     var black_king_pos = b_king_pos
 
@@ -542,13 +652,11 @@ function check(start_index, target_index, board, color){
 
     if(color === "black")
         future_white_unit_indices.forEach(function(uindex) {
-
             if(is_valid_mv(uindex, black_king_pos, future_board)){
                 threatened = b_king_pos
             }
         })
 
-    player_turn = tmp_turn
     return threatened
 
 }
@@ -568,6 +676,7 @@ function is_valid_mv(start_index, target_index, board){
     if(start_unit === undefined){
         return false
     }
+
     //! conditions to check different kind of movements
     var cd1, cd2, cd3, cd4
     switch(start_unit.utype){

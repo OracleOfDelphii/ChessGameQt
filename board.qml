@@ -1,4 +1,4 @@
-import QtQml.Models 2.3
+import QtQml.Models 2.12
 import QtQuick.Window 2.2
 import QtQuick 2.9
 import QtQuick.Layouts 1.3
@@ -6,13 +6,6 @@ import QtQuick.Controls 2.12
 
 import "graphic.js" as Graphic
 import "logic.js" as Logic
-
-/*
- The graphic has three parts so far:
-    grid for units
-    grid for background
-    two Flow layouts for additional things(movements, score, ...)
-*/
 
 
 Window {
