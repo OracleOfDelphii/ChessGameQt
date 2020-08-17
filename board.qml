@@ -14,10 +14,13 @@ Window {
     visible: true
     title: qsTr("Chess game")
     height: 454
-    width: 384
+    x: 1000
+    y: 1000
+    width: 384 + 150
     property int dropped_ind: -1
     property int grabbed_ind: -1
     property bool is_dropped: false
+    property var game : Logic.create_game()
     property var l_board:  Logic.create_table()
     property var players: Logic.create_player()
     property string last_move
@@ -285,6 +288,47 @@ Window {
 
         }
     }
+    Rectangle{
+        width: 150
+        height: 454
+        x: 390
+        y: 0
+        color: "gray"
+        Column {
+            id: right_panel
+            width: parent.width
+            height: parent.height
+            spacing: 1
+
+            Button {
+                y: 10
+                width: parent.width
+                id: button1
+                text: qsTr("New")
+            }
+            Button {
+                width: parent.width
+                id: button2
+                text: qsTr("Load")
+            }
+
+            Button {
+                width: parent.width
+                id: button3
+                text: qsTr("Save")
+            }
+
+            Button {
+                width: parent.width
+                id: button4
+                text: qsTr("About")
+            }
+
+
+        }
+    }
+
+
 
 }
 

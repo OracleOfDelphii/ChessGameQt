@@ -1,4 +1,4 @@
-// TO-DO write unit tests
+// TO-DO check for Draw
 
 //! A class containing information about each player
 class Player {
@@ -68,14 +68,8 @@ function try_move(start_index, target_index){
 
 
 
-            if(player_turn == 0){
-                player_turn = 1
-            }
-            else{
-                player_turn = 0
-            }
-
             // move in logical board
+
 
 
 
@@ -83,8 +77,39 @@ function try_move(start_index, target_index){
             l_board[target_index] = l_board[start_index]
             l_board[start_index] = empty_unit(-1)
 
+            if(threatened !== -1){
+                threatened_king = threatened
+                var winner = ""
+                var loser = ""
+                if(is_mate(target_index, l_board)){
+                    game.winner = players[player_turn]
+                    winner = game.winner
+                    loser = player_turn === 0 ? players[1] : players[0];
+                    update_statistics(winner, loser)
+                    var tmp = players;
+                    return -1;
+                }
+                else if(is_draw(target_index, l_board)){
+                    update_statistics(winner, loser)
+                    return -1;
+                }
+
+            }
 
             players[player_turn].add_move(move_str(start_index, target_index))
+
+            players[player_turn].print_history();
+            console.log(players[player_turn].name +
+                        players[player_turn].cl);
+
+            if(player_turn == 0){
+                player_turn = 1
+            }
+            else{
+                player_turn = 0
+            }
+
+
 
 
 
@@ -92,12 +117,6 @@ function try_move(start_index, target_index){
             var tmp2 = black_unit_indices;
 
 
-            if(threatened !== -1){
-                threatened_king = threatened
-                if(is_mate(target_index, l_board)){
-                    return -1;
-                }
-            }
 
             return 1;
         }
@@ -120,12 +139,13 @@ function move_str(start_index, target_index){
 }
 
 class Game{
-    constructor(type = "normal", board, turn, player1, player2) {
-        this.type = "normal"
-        this.board = []
-        this.turn = 0
+    constructor(type = "normal", board, turn, player1, player2, winner = "") {
+        this.type = type
+        this.board = board
+        this.turn = turn
         this.player1 = player1
         this.player2 = player2
+        this.winner = winner
     }
 
     loadGame(savefile_path){
@@ -157,6 +177,12 @@ function create_player(){
     return players
 }
 
+function create_game(){
+    // nstructor(type = "normal", board, turn, player1, player2, winner)
+    var game = new Game("normal", l_board, 0, players[0], players[1], "");
+    return game
+}
+
 // TO-DO add has_vertical, has_horizontal, has diagonal move to Unit class
 class Unit {
     // utype -> unit type
@@ -176,7 +202,10 @@ class Unit {
     }
 }
 
-//! TO-DO
+function is_draw(start_index, board){
+
+}
+
 function is_mate(start_index, board){
     var start_unit = board[start_index]
     var tar_king_index;
@@ -322,7 +351,7 @@ function is_mate(start_index, board){
             })
 
 
-             if(can_rescue) return false;
+            if(can_rescue) return false;
 
 
         }
@@ -803,3 +832,22 @@ function is_valid_mv(start_index, target_index, board){
         return is_valid_jump(start_index, target_index, board)
     }
 }
+
+// when the game is finished, it updates players statistics
+function update_statistics(winner, loser){
+    var tmp = winner;
+    var tmp2 = loser;
+
+   if(winner !== ""){
+       winner.win_cnt++;
+       loser.lose_cnt++;
+   }
+   else{
+       players[0].draw_cnt++;
+       players[1].draw_cnt++;
+   }
+
+
+
+}
+
