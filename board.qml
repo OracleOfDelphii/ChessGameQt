@@ -119,12 +119,15 @@ Window {
                     onReleased: {
                         dropped_ind = bg_grid.indexAt(mouseX, mouseY)
                         var dropped_cell = grid16.itemAt(mouseX, mouseY)
-
-                        if(Logic.try_move(grabbed_ind, dropped_ind)){
+                        var move_state = Logic.try_move(grabbed_ind, dropped_ind);
+                        if(move_state !== 0){
                             dropped_cell.src = ""
                             Graphic.add_last_move()
                             // transition in graphical board
                             Graphic.move(grabbed_ind, dropped_ind)
+                        }
+                        if(move_state === -1){
+                            console.log("EEEEEEEEEEEEEND")
                         }
                     }
 

@@ -4,7 +4,7 @@
 class Player {
     constructor(name, color){
         this.name = name
-        this.ucolor = color
+        this.cl = color
         this.check = false
         this.move_history = []
         this.win_cnt = 0
@@ -33,10 +33,10 @@ function try_move(start_index, target_index){
     // the target is empty, there is an empty unit there
     var target_unit = l_board[target_index]
     var start_unit = l_board[start_index]
-    var cl = players[player_turn].ucolor
+    var cl = players[player_turn].cl
     var op_cl = cl === "white" ? "black" : "white"
 
-    if(start_unit.ucolor === players[player_turn].ucolor){
+    if(start_unit.cl === cl){
         var valid_move = Logic.is_valid_mv(start_index, target_index, l_board)
         var threated = Logic.check(start_index, target_index, l_board, cl)
         if(valid_move && (threated === -1)){
@@ -49,26 +49,23 @@ function try_move(start_index, target_index){
                 w_king_pos = target_index
             }
 
-            var threatened = check(start_index, target_index, l_board, op_cl)
-
-
-            if(threatened !== -1){
-
-                threatened_king = threatened
-                if(is_mate(start_index, board)){
-                    console.log("THE END");
-                    return false;
+            if(start_unit.cl === "white"){
+                white_unit_indices[l_board[start_index].id] = target_index
+                if(l_board[target_index].cl === "black"){
+                    black_unit_indices[l_board[target_index].id] = -1
+                }
+            }
+            if(start_unit.cl === "black"){
+                black_unit_indices[l_board[start_index].id] = target_index
+                if(l_board[target_index].cl === "white"){
+                    white_unit_indices[l_board[target_index].id] = -1
                 }
             }
 
-            if(start_unit.ucolor === "white"){
-                white_unit_indices[l_board[start_index].id] = target_index
-                white_unit_indices[l_board[target_index].id] = -1
-            }
-            if(start_unit.ucolor === "black"){
-                black_unit_indices[l_board[start_index].id] = target_index
-                black_unit_indices[l_board[target_index].id] = -1
-            }
+            var threatened = check(start_index, target_index, l_board, op_cl)
+
+
+
 
 
             if(player_turn == 0){
@@ -79,17 +76,34 @@ function try_move(start_index, target_index){
             }
 
             // move in logical board
+
+
+
             l_board[start_index].index = target_index
             l_board[target_index] = l_board[start_index]
             l_board[start_index] = empty_unit(-1)
+
+
             players[player_turn].add_move(move_str(start_index, target_index))
 
 
-            return true
+
+            var tmp = white_unit_indices;
+            var tmp2 = black_unit_indices;
+
+
+            if(threatened !== -1){
+                threatened_king = threatened
+                if(is_mate(target_index, l_board)){
+                    return -1;
+                }
+            }
+
+            return 1;
         }
 
     }
-    return false
+    return 0;
 }
 
 function move_str(start_index, target_index){
@@ -167,103 +181,175 @@ function is_mate(start_index, board){
     var start_unit = board[start_index]
     var tar_king_index;
     var attacking_unit_indices;
-    var attack_unit_color = start_unit.color;
+    var defending_unit_indices;
+    var attack_unit_color = start_unit.cl;
+    var defend_unit_color;
+
     if(attack_unit_color === "black"){
         tar_king_index = w_king_pos;
-        attacking_unit_indices = white_unit_indices;
+        defend_unit_color = "white";
+        attacking_unit_indices = black_unit_indices;
+        defending_unit_indices = white_unit_indices;
     }
     else{
-        tar_unit = b_king_pos;
-        attacking_unit_indices = black_unit_indices;
+        defend_unit_color = "black";
+        tar_king_index = b_king_pos;
+        attacking_unit_indices = white_unit_indices;
+        defending_unit_indices = black_unit_indices;
     }
 
     // first check if king can move
-    if(is_valid_mv(tar_king_index, tar_king_index + 1, board) &&
-            !check(tar_king_index, tar_king_index + 1, board, "white")){
-        return false;
+    if(is_valid_mv(tar_king_index, tar_king_index + 1, board)){
+        if(check(tar_king_index, tar_king_index + 1, board, defend_unit_color) === -1){
+            return false;
+        }
     }
-    if(is_valid_mv(tar_king_index, tar_king_index - 1, board) &&
-            !check(tar_king_index, tar_king_index - 1, board, "white")){
-        return false;
+
+    if(is_valid_mv(tar_king_index, tar_king_index - 1, board)){
+        if(check(tar_king_index, tar_king_index - 1, board, defend_unit_color) === -1){
+            return false;
+        }
     }
-    if(is_valid_mv(tar_king_index, tar_king_index + 8, board) &&
-            !check(tar_king_index, tar_king_index + 8, board, "white")){
-        return false;
+
+    if(is_valid_mv(tar_king_index, tar_king_index - 8, board)){
+        if(check(tar_king_index, tar_king_index - 8, board, defend_unit_color) === -1){
+            return false;
+        }
     }
-    if(is_valid_mv(tar_king_index, tar_king_index - 8, board) &&
-            !check(tar_king_index, tar_king_index - 8, board, "white")){
-        return false;
+
+    if(is_valid_mv(tar_king_index, tar_king_index - 9, board)){
+        if(check(tar_king_index, tar_king_index - 9, board, defend_unit_color) === -1){
+            return false;
+        }
+    }
+    if(is_valid_mv(tar_king_index, tar_king_index + 9, board)){
+        if(check(tar_king_index, tar_king_index + 9, board, defend_unit_color) === -1){
+            return false;
+        }
+    }
+
+    if(is_valid_mv(tar_king_index, tar_king_index + 8, board)){
+        if(check(tar_king_index, tar_king_index + 8, board, defend_unit_color) === -1){
+            return false;
+        }
+    }
+
+    if(is_valid_mv(tar_king_index, tar_king_index - 7, board)){
+        if(check(tar_king_index, tar_king_index - 7, board, defend_unit_color) === -1){
+            return false;
+        }
+    }
+
+    if(is_valid_mv(tar_king_index, tar_king_index + 7, board)){
+        if(check(tar_king_index, tar_king_index + 7, board, defend_unit_color) === -1){
+            return false;
+        }
     }
 
     // check if attacking unit can be killed
-    attacking_unit_indices.forEach(function(uindex) {
+    var can_kill = false;
 
-        if(is_valid_mv(uindex, start_index, future_board)){
-            if(!check(uindex, start_index, board, attack_unit_color)){
-                return false;
+    defending_unit_indices.forEach(function(uindex) {
+        if(is_valid_mv(uindex, start_index, board)){
+            if(check(uindex, start_index, board, defend_unit_color) === -1){
+                can_kill = true;
+                return;
             }
         }
+
+
+
     })
+
+    if(can_kill) return false;
+
+
+    var can_rescue = false;
 
     // check if something can go between them
     // if the threatener is horse and
     // horse can not be killed, it's checkmate.
-    if(start_unit.utype === "horse"){
+    if(start_unit.unit_type === "horse"){
         console.log("END");
         return true;
     }
 
-    var up_index = Math.max(start_index, target_index)
-    var lp_index = Math.min(start_index, target_index)
+    var up_index = Math.max(start_index,  tar_king_index)
+    var lp_index = Math.min(start_index, tar_king_index)
 
     // lets see if with diagonal move, king can be rescued or not.
-    if(Math.abs(up_index % 8 - lp_index % 8) === Math.abs(up_index /
-                                                          8 - lp_index / 8)){
-        if(start_unit.utype === "bishop" || start_unit.utype === "queen"){
-            if(up_index % 8 < lp_index){
-                // \
-                for(var j = up_index - 9; j > lp_index; j -= 9){
-                    attacking_unit_indices.forEach(function(uindex) {
-                        if(is_valid_mv(uindex, j, future_board)){
-                            if(!check(uindex, j, board, attack_unit_color)){
-                                return false;
-                            }
+
+    if((up_index - lp_index) % 9 === 0){
+        // \
+        for(var j = up_index - 9; j > lp_index; j -= 9){
+            defending_unit_indices.forEach(function(uindex) {
+                var potential_rescuer = board[uindex];
+                if(potential_rescuer.unit_type === "bishop" ||
+                        potential_rescuer.unit_type === "queen"){
+                    if(is_valid_mv(uindex, j, board)){
+                        if(check(uindex, j, board, defend_unit_color) === -1){
+                            can_rescue = true;
+                            return;
                         }
-                    })
-
-                }
-
-
-            }
-            else if(up_index % 8 > lp_index){
-                // /
-                for(j = up_index - 7; j > lp_index; j -= 7){
-                    attacking_unit_indices.forEach(function(uindex) {
-                        if(is_valid_mv(uindex, j, future_board)){
-                            if(!check(uindex, j, board, attack_unit_color)){
-                                return false;
-                            }
-                        }
-                    })
-
+                    }
                 }
             }
+
+            )
+
+            if(can_rescue) return false;
         }
-        else if(start_unit.utype === "soldier" ||
-                start_unit.utype === "rock" || start_unit.utype === "queen"){
-            for(j = up_index - 8; j > lp_index; j -= 8){
-                    attacking_unit_indices.forEach(function(uindex) {
-                        if(is_valid_mv(uindex, j, future_board)){
-                            if(!check(uindex, j, board, attack_unit_color)){
-                                return false;
-                            }
+
+
+    }
+
+    else if((up_index - lp_index) % 7 == 0){
+        // /
+        for(j = up_index - 7; j > lp_index; j -= 7){
+
+            defending_unit_indices.forEach(function(uindex) {
+                var potential_rescuer = board[uindex];
+                if(potential_rescuer.unit_type === "bishop" ||
+                        potential_rescuer.unit_type === "queen"){
+                    if(is_valid_mv(uindex, j, board)){
+                        if(check(uindex, j, board, defend_unit_color) === -1){
+                            can_rescue = true;
+                            return;
                         }
-                    })
+                    }
                 }
+
+            })
+
+
+             if(can_rescue) return false;
+
+
         }
     }
 
-    console.log("END2");
+
+
+
+
+    if(start_unit.unit_type === "soldier" ||
+            start_unit.unit_type === "rock" || start_unit.unit_type === "queen"){
+        for(j = up_index - 8; j > lp_index; j -= 8){
+            defending_unit_indices.forEach(function(uindex) {
+                if(is_valid_mv(uindex, j, board)){
+                    if(check(uindex, j, board, defend_unit_color) === -1){
+                        can_rescue = true;
+                        return;
+                    }
+                }
+            })
+
+
+
+            if(can_rescue) return false;
+        }
+    }
+
     return true;
 }
 
@@ -278,7 +364,7 @@ function is_valid_jump(start_index, target_index, board){
     var tar_unit = board[target_index]
     // conditions to check
     var cd1, cd2, cd3, cd4, cd5, cd6, cd7, cd8
-    if(tar_unit.ucolor === start_unit.ucolor){
+    if(tar_unit.cl === start_unit.cl){
         return false;
     }
     // atmost, there are 8 possible positions horse can jump into.
@@ -306,8 +392,8 @@ function is_valid_vertical(start_index, target_index, board){
     var lp_unit = board[Math.min(start_index, target_index)]
     var up_index = Math.max(start_index, target_index)
     var lp_index = Math.min(start_index, target_index)
-    var king = start_unit.utype === "king"
-    var soldier = start_unit.utype === "soldier"
+    var king = start_unit.unit_type === "king"
+    var soldier = start_unit.unit_type === "soldier"
     var dist = Math.abs(start_index - target_index)
 
     if(king){
@@ -315,8 +401,8 @@ function is_valid_vertical(start_index, target_index, board){
     }
 
     if(soldier){
-        var cl = start_unit.ucolor
-        if(tar_unit.utype !== "empty"){
+        var cl = start_unit.cl
+        if(tar_unit.unit_type !== "empty"){
             return false;
         }
         var b_soldier_init_ind = start_index > 7 && start_index <= 15;
@@ -340,7 +426,7 @@ function is_valid_vertical(start_index, target_index, board){
     var found = false
 
     for(var i = Math.max(start_index, target_index) - 8; i >= Math.min(start_index, target_index); i-=8){
-        if(board[i].utype !== "empty" && board[i] !== lp_unit){
+        if(board[i].unit_type !== "empty" && board[i] !== lp_unit){
 
             return false;
         }
@@ -350,7 +436,7 @@ function is_valid_vertical(start_index, target_index, board){
 
     if(!found) return false
 
-    if(tar_unit.ucolor === start_unit.ucolor){
+    if(tar_unit.cl === start_unit.cl){
         return false;
     }
 
@@ -370,7 +456,7 @@ function is_valid_horizontal(start_index, target_index, board){
     var up_pos = Math.max(start_index, target_index)
     var lp_pos = Math.min(start_index, target_index)
     //
-    var king = start_unit.utype === "king"
+    var king = start_unit.unit_type === "king"
     var dist = Math.abs(start_index - target_index)
 
     if(king){
@@ -385,7 +471,7 @@ function is_valid_horizontal(start_index, target_index, board){
     var found = false
     for(var i = up_pos - 1; i >= lp_pos; i--){
 
-        if(board[i].utype !== "empty" && board[i] !== lp_unit){
+        if(board[i].unit_type !== "empty" && board[i] !== lp_unit){
             return false;
         }
 
@@ -393,7 +479,7 @@ function is_valid_horizontal(start_index, target_index, board){
     }
 
     if(!found) return false
-    if(tar_unit.ucolor === start_unit.ucolor){
+    if(tar_unit.cl === start_unit.cl){
         return false;
     }
 
@@ -409,18 +495,18 @@ function is_valid_diagonal(start_index, target_index, board){
     var lp_unit = board[Math.min(start_index, target_index)]
     var up_pos = Math.max(start_index, target_index)
     var lp_pos = Math.min(start_index, target_index)
-    var king = start_unit.utype === "king"
-    var soldier = start_unit.utype === "soldier"
+    var king = start_unit.unit_type === "king"
+    var soldier = start_unit.unit_type === "soldier"
     if(king || soldier){
         var dist = Math.abs(start_index - target_index)
         if(dist !== 9 &&  dist !== 7) return false
     }
 
     if(soldier){
-        if(tar_unit.utype === "empty"){
+        if(tar_unit.unit_type === "empty"){
             return false
         }
-        if(start_unit.ucolor === starter){
+        if(start_unit.cl === starter){
             if(start_unit !== up_unit){
                 return false
             }
@@ -436,7 +522,7 @@ function is_valid_diagonal(start_index, target_index, board){
     // checks for diagonal move in north-west direction
     if(up_pos % 8 > lp_pos % 8 && (up_pos % 8 !== 0)){
         for(var i = up_pos - 9; i >= lp_pos; i -=9){
-            if(board[i].utype !== "empty" && board[i] !== lp_unit){
+            if(board[i].unit_type !== "empty" && board[i] !== lp_unit){
 
                 return false;
             }
@@ -447,7 +533,7 @@ function is_valid_diagonal(start_index, target_index, board){
     // checks for diagonal move in north-east direction
     else if(up_pos % 8 < lp_pos % 8 && (up_pos + 1) % 8 !== 0){
         for(i = up_pos - 7; i >= lp_pos; i -= 7){
-            if(board[i].utype !== "empty" && board[i] !== lp_unit){
+            if(board[i].unit_type !== "empty" && board[i] !== lp_unit){
                 return false;
             }
 
@@ -456,7 +542,7 @@ function is_valid_diagonal(start_index, target_index, board){
     }
     if(!found) return false
 
-    if(tar_unit.ucolor === start_unit.ucolor){
+    if(tar_unit.cl === start_unit.cl){
 
         return false;
     }
@@ -465,7 +551,7 @@ function is_valid_diagonal(start_index, target_index, board){
 }
 
 function get_unit_index(board, w_unit_indices, b_unit_indices, id){
-    var utype = board[index].utype
+    var utype = board[index].unit_type
     if(utype === "black"){
         return b_unit_indices[id]
     }
@@ -477,6 +563,7 @@ function get_unit_index(board, w_unit_indices, b_unit_indices, id){
     }
 
 }
+
 
 function create_table(){
     var board = []
@@ -503,8 +590,8 @@ function create_table(){
         else if((cell_index >= 48 && cell_index < 56)) {
             new_unit = new Unit("white", "soldier", i, index_by_team)
             board.push(new_unit)
-            index_by_team++;
             white_unit_indices[index_by_team] = i
+            index_by_team++;
         }
         else{
             switch(cell_index){
@@ -523,13 +610,13 @@ function create_table(){
                 board.push(new_unit)
                 white_unit_indices[index_by_team] = i
                 index_by_team++; break;
-            case 59:
+            case 60:
                 new_unit = new Unit("white", "king", i, index_by_team)
                 w_king_pos = cell_index
                 board.push(new_unit)
                 white_unit_indices[index_by_team] = i
                 index_by_team++; break;
-            case 60:
+            case 59:
                 new_unit = new Unit("white", "queen", i, index_by_team)
 
                 white_unit_indices[index_by_team] = i
@@ -567,13 +654,13 @@ function create_table(){
                 board.push(new_unit)
                 black_unit_indices[index_by_team] = i
                 index_by_team++; break;
-            case 3:
+            case 4:
                 new_unit = new Unit("black", "king", i, index_by_team)
                 b_king_pos = cell_index
                 board.push(new_unit)
                 black_unit_indices[index_by_team] = i
                 index_by_team++; break;
-            case 4:
+            case 3:
                 new_unit = new Unit("black", "queen", i, index_by_team)
 
                 black_unit_indices[index_by_team] = i
@@ -606,9 +693,10 @@ function create_table(){
 // It creates a virtual board, makes a movement and checks if
 // in that scenario the king is threatened or not.
 function check(start_index, target_index, board, color){
-    var future_board = Object.assign([], board);
-    var future_white_unit_indices = Object.assign([],  white_unit_indices)
-    var future_black_unit_indices = Object.assign([],  black_unit_indices)
+    var future_board = JSON.parse(JSON.stringify(board));
+    var future_white_unit_indices = JSON.parse(JSON.stringify(white_unit_indices));
+    var future_black_unit_indices = JSON.parse(JSON.stringify(black_unit_indices));
+
     var white_king_pos = w_king_pos
     var black_king_pos = b_king_pos
 
@@ -620,19 +708,21 @@ function check(start_index, target_index, board, color){
     }
 
     if(color === "black")
-        if(future_board[start_index].ucolor === "white"){
+        if(future_board[start_index].cl === "white"){
             if(future_board[start_index].id !== -1)
                 future_white_unit_indices[future_board[start_index].id] =  target_index
-            if(future_board[target_index].id !== -1)
-                future_white_unit_indices[future_board[target_index].id] =  -1
+            if(future_board[target_index].id !== -1 &&
+                    future_board[target_index].cl === "black")
+                future_black_unit_indices[future_board[target_index].id] =  -1
         }
 
     if(color === "white")
-        if(future_board[start_index].ucolor === "black"){
+        if(future_board[start_index].cl === "black"){
             if(future_board[start_index].id !== -1)
                 future_black_unit_indices[future_board[start_index].id] =  target_index
-            if(future_board[target_index].id !== -1)
-                future_black_unit_indices[future_board[target_index].id] =  -1
+            if(future_board[target_index].id !== -1 &&
+                    future_board[target_index].cl === "white")
+                future_white_unit_indices[future_board[target_index].id] =  -1
         }
 
     future_board[start_index].index = future_board[target_index].index
@@ -641,22 +731,22 @@ function check(start_index, target_index, board, color){
 
     var threatened = -1
 
-    if(color === "white")
+    if(color === "white"){
         future_black_unit_indices.forEach(function(uindex) {
-
             if(is_valid_mv(uindex, white_king_pos, future_board)){
                 threatened = w_king_pos
 
             }
         })
+    }
 
-    if(color === "black")
+    if(color === "black"){
         future_white_unit_indices.forEach(function(uindex) {
             if(is_valid_mv(uindex, black_king_pos, future_board)){
                 threatened = b_king_pos
             }
         })
-
+    }
     return threatened
 
 }
@@ -667,7 +757,8 @@ function get_unit_type(index){
 
 //! start_index, target_index are positions in board
 function is_valid_mv(start_index, target_index, board){
-
+    if(start_index < 0 || start_index > 63) return false;
+    if(target_index < 0 || target_index > 63) return false;
     var start_unit = board[start_index]
     var tar_unit = board[target_index]
     var cl = player_turn == 0 ? "white" : "black"
@@ -679,7 +770,7 @@ function is_valid_mv(start_index, target_index, board){
 
     //! conditions to check different kind of movements
     var cd1, cd2, cd3, cd4
-    switch(start_unit.utype){
+    switch(start_unit.unit_type){
 
     case "soldier":
         cd1 = is_valid_vertical(start_index, target_index, board)
