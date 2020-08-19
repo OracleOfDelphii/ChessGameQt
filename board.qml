@@ -3,12 +3,19 @@ import QtQuick.Window 2.2
 import QtQuick 2.9
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.12
-
+import io.qt.examples.gameutils 1.0
 import "graphic.js" as Graphic
 import "logic.js" as Logic
 
 
+
 Window {
+
+    GameUtils{
+        id:gameutil
+    }
+
+
     id: main
     color: "black"
     visible: true
@@ -16,7 +23,7 @@ Window {
     height: 454
     x: 1000
     y: 1000
-    width: 384 + 150
+    width: 534
     property int dropped_ind: -1
     property int grabbed_ind: -1
     property bool is_dropped: false
@@ -122,16 +129,25 @@ Window {
                     onReleased: {
                         dropped_ind = bg_grid.indexAt(mouseX, mouseY)
                         var dropped_cell = grid16.itemAt(mouseX, mouseY)
-                        var move_state = Logic.try_move(grabbed_ind, dropped_ind);
+                        var move_state = Logic.try_move(l_board, grabbed_ind, dropped_ind);
                         if(move_state !== 0){
                             dropped_cell.src = ""
                             Graphic.add_last_move()
                             // transition in graphical board
                             Graphic.move(grabbed_ind, dropped_ind)
                         }
-                        if(move_state === -1){
+                        else if(move_state === -1){
+                            Graphic.add_last_move()
                             console.log("EEEEEEEEEEEEEND")
                         }
+
+
+                        var info = {"type": "normal",
+                            "start": "white",
+                            "turn": game.turn,
+                            "winner": game.winner}
+
+                        gameutil.save_game("./test.json", players, l_board, info)
                     }
 
                     onPressed: {

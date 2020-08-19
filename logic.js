@@ -1,6 +1,6 @@
 // TO-DO check for Draw
+//! A class containing information about each
 
-//! A class containing information about each player
 class Player {
     constructor(name, color){
         this.name = name
@@ -11,10 +11,12 @@ class Player {
         this.lose_cnt = 0
         this.draw_cnt = 0
     }
+
     // get number of movements this player made
     get move_num(){
         return this.move_history.length
     }
+
     // adds a move to player move history
     add_move(move){
         this.move_history.push(move)
@@ -27,18 +29,18 @@ class Player {
     }
 }
 
-function try_move(start_index, target_index){
+function try_move(board, start_index, target_index){
     // start_unit is the unit that player wants to move
     // target_unit is the unit in target_cell, if
     // the target is empty, there is an empty unit there
-    var target_unit = l_board[target_index]
-    var start_unit = l_board[start_index]
+    var target_unit = board[target_index]
+    var start_unit = board[start_index]
     var cl = players[player_turn].cl
     var op_cl = cl === "white" ? "black" : "white"
 
     if(start_unit.cl === cl){
-        var valid_move = Logic.is_valid_mv(start_index, target_index, l_board)
-        var threated = Logic.check(start_index, target_index, l_board, cl)
+        var valid_move = Logic.is_valid_mv(start_index, target_index, board)
+        var threated = Logic.check(start_index, target_index, board, cl)
         if(valid_move && (threated === -1)){
             threatened_king = -1
             if(start_index === b_king_pos){
@@ -50,38 +52,34 @@ function try_move(start_index, target_index){
             }
 
             if(start_unit.cl === "white"){
-                white_unit_indices[l_board[start_index].id] = target_index
-                if(l_board[target_index].cl === "black"){
-                    black_unit_indices[l_board[target_index].id] = -1
+                white_unit_indices[board[start_index].id] = target_index
+                if(board[target_index].cl === "black"){
+                    black_unit_indices[board[target_index].id] = -1
                 }
             }
             if(start_unit.cl === "black"){
-                black_unit_indices[l_board[start_index].id] = target_index
-                if(l_board[target_index].cl === "white"){
-                    white_unit_indices[l_board[target_index].id] = -1
+                black_unit_indices[board[start_index].id] = target_index
+                if(board[target_index].cl === "white"){
+                    white_unit_indices[board[target_index].id] = -1
                 }
             }
 
-            var threatened = check(start_index, target_index, l_board, op_cl)
-
-
-
-
+            var threatened = check(start_index, target_index, board, op_cl)
 
             // move in logical board
 
+            board[start_index].index = target_index
+            board[target_index] = board[start_index]
+            board[start_index] = empty_unit(-1)
 
 
-
-            l_board[start_index].index = target_index
-            l_board[target_index] = l_board[start_index]
-            l_board[start_index] = empty_unit(-1)
+            players[player_turn].add_move(move_str(start_index, target_index))
 
             if(threatened !== -1){
                 threatened_king = threatened
                 var winner = ""
                 var loser = ""
-                if(is_mate(target_index, l_board)){
+                if(is_mate(target_index, board)){
                     game.winner = players[player_turn]
                     winner = game.winner
                     loser = player_turn === 0 ? players[1] : players[0];
@@ -89,18 +87,15 @@ function try_move(start_index, target_index){
                     var tmp = players;
                     return -1;
                 }
-                else if(is_draw(target_index, l_board)){
+                else if(is_draw(target_index, board)){
                     update_statistics(winner, loser)
                     return -1;
                 }
-
             }
 
-            players[player_turn].add_move(move_str(start_index, target_index))
 
-            players[player_turn].print_history();
-            console.log(players[player_turn].name +
-                        players[player_turn].cl);
+
+
 
             if(player_turn == 0){
                 player_turn = 1
@@ -108,15 +103,6 @@ function try_move(start_index, target_index){
             else{
                 player_turn = 0
             }
-
-
-
-
-
-            var tmp = white_unit_indices;
-            var tmp2 = black_unit_indices;
-
-
 
             return 1;
         }
@@ -139,29 +125,42 @@ function move_str(start_index, target_index){
 }
 
 class Game{
-    constructor(type = "normal", board, turn, player1, player2, winner = "") {
+    constructor(type = "normal", board, turn, player1, player2, winner = "", start) {
         this.type = type
         this.board = board
         this.turn = turn
         this.player1 = player1
         this.player2 = player2
         this.winner = winner
+        this.start = start
     }
 
     loadGame(savefile_path){
+        gameutil.load_game(savefile_path)
+        var game = gameutil.game
+
+        this.board = JSON.parse(JSON.stringify(game["board"]))
+        this.player1 = JSON.parse(JSON.stringify(game))["players"][0]
+        this.player2 = JSON.parse(JSON.stringify(game))["players"][1]
+        this.winner = JSON.parse(JSON.stringify(game))["info"]["winner"]
+        this.type = JSON.parse(JSON.stringify(game))["info"]["type"]
+        this.turn = JSON.parse(JSON.stringify(game))["info"]["turn"]
+        this.start = JSON.parse(JSON.stringify(game))["info"]["start"]
 
     }
-    saveGame(to_destination){
 
+    saveGame(to_destination, players, board, info){
+        gameutil.save_game(to_destination, players, board, info)
     }
+
     resetGame(){
 
     }
     newPlayer(){
 
     }
-    newGame(type){
-
+    newGame(){
+        gameutil.new_game()
     }
 }
 
@@ -180,11 +179,12 @@ function create_player(){
 function create_game(){
     // nstructor(type = "normal", board, turn, player1, player2, winner)
     var game = new Game("normal", l_board, 0, players[0], players[1], "");
+    game.loadGame("./newGame.json")
     return game
 }
 
 // TO-DO add has_vertical, has_horizontal, has diagonal move to Unit class
-class Unit {
+class Unit{
     // utype -> unit type
     // color -> {black, white}
     // color costumization doesnt affect this class
@@ -835,17 +835,16 @@ function is_valid_mv(start_index, target_index, board){
 
 // when the game is finished, it updates players statistics
 function update_statistics(winner, loser){
-    var tmp = winner;
-    var tmp2 = loser;
 
-   if(winner !== ""){
-       winner.win_cnt++;
-       loser.lose_cnt++;
-   }
-   else{
-       players[0].draw_cnt++;
-       players[1].draw_cnt++;
-   }
+
+    if(winner !== ""){
+        winner.win_cnt++;
+        loser.lose_cnt++;
+    }
+    else{
+        players[0].draw_cnt++;
+        players[1].draw_cnt++;
+    }
 
 
 
