@@ -1,5 +1,5 @@
 // TO-DO check for Draw
-//! A class containing information about each
+
 
 class Player {
     constructor(name, color){
@@ -22,6 +22,18 @@ class Player {
         this.move_history.push(move)
     }
 
+    set_player(json_player){
+        this.win_cnt = JSON.parse(json_player["win_cnt"])
+        this.lose_cnt = JSON.parse(json_player["lose_cnt"])
+        this.draw_cnt = JSON.parse(json_player["draw_cnt"])
+        this.name = JSON.parse(JSON.stringify(json_player["name"]))
+        this.cl = JSON.parse(JSON.stringify(json_player["cl"]))
+        this.check = JSON.parse(JSON.stringify(json_player["check"]))
+        this.move_history = JSON.parse(JSON.stringify(
+                                           json_player["move_history"]))
+
+    }
+
     print_history(){
         for(var i = 0; i < this.move_history.length; i++){
             console.log(this.move_history[i])
@@ -29,6 +41,12 @@ class Player {
     }
 }
 
+
+// this function tries to move a piece on the given board
+// from <start_index> to <target_index>(If there is any)
+// If the move is impossible, but game is not finished, it returns 0
+// if the game is finished, it returns -1
+// If the move is possible, it returns 1
 function try_move(board, start_index, target_index){
     // start_unit is the unit that player wants to move
     // target_unit is the unit in target_cell, if
@@ -36,7 +54,7 @@ function try_move(board, start_index, target_index){
     var target_unit = board[target_index]
     var start_unit = board[start_index]
     var cl = players[player_turn].cl
-    var op_cl = cl === "white" ? "black" : "white"
+    var op_cl = (cl === "white" ? "black" : "white")
 
     if(start_unit.cl === cl){
         var valid_move = Logic.is_valid_mv(start_index, target_index, board)
@@ -75,34 +93,42 @@ function try_move(board, start_index, target_index){
 
             players[player_turn].add_move(move_str(start_index, target_index))
 
+            if(threated === -1){
+                if(player_turn == 0){
+                    player_turn = 1
+                }
+                else{
+                    player_turn = 0
+                }
+            }
+
             if(threatened !== -1){
+                console.log(start_index)
                 threatened_king = threatened
                 var winner = ""
                 var loser = ""
-                if(is_mate(target_index, board)){
+                if(is_mate(target_index, board, black_unit_indices, white_unit_indices)){
                     game.winner = players[player_turn]
                     winner = game.winner
                     loser = player_turn === 0 ? players[1] : players[0];
                     update_statistics(winner, loser)
-                    var tmp = players;
+                    var info = {"type": "normal",
+                        "start": "white",
+                        "turn": game.turn,
+                        "winner": game.winner}
+
+                    gameutil.save_game("./newGame.json",
+                                       players, l_board, info)
                     return -1;
                 }
                 else if(is_draw(target_index, board)){
                     update_statistics(winner, loser)
+                    gameutil.save_game("./newGame.json",
+                                       players, l_board, info)
                     return -1;
                 }
             }
 
-
-
-
-
-            if(player_turn == 0){
-                player_turn = 1
-            }
-            else{
-                player_turn = 0
-            }
 
             return 1;
         }
@@ -111,6 +137,7 @@ function try_move(board, start_index, target_index){
     return 0;
 }
 
+// i
 function move_str(start_index, target_index){
     var from_index = start_index
     var col = String.fromCharCode('a'.charCodeAt(0) + from_index % 8)
@@ -125,7 +152,9 @@ function move_str(start_index, target_index){
 }
 
 class Game{
-    constructor(type = "normal", board, turn, player1, player2, winner = "", start) {
+    constructor(type = "normal", board =
+                l_board, turn = 0, player1, player2, winner = "",
+                start = "white") {
         this.type = type
         this.board = board
         this.turn = turn
@@ -135,19 +164,35 @@ class Game{
         this.start = start
     }
 
+
     loadGame(savefile_path){
         gameutil.load_game(savefile_path)
         var game = gameutil.game
-
         this.board = JSON.parse(JSON.stringify(game["board"]))
-        this.player1 = JSON.parse(JSON.stringify(game))["players"][0]
-        this.player2 = JSON.parse(JSON.stringify(game))["players"][1]
-        this.winner = JSON.parse(JSON.stringify(game))["info"]["winner"]
-        this.type = JSON.parse(JSON.stringify(game))["info"]["type"]
-        this.turn = JSON.parse(JSON.stringify(game))["info"]["turn"]
-        this.start = JSON.parse(JSON.stringify(game))["info"]["start"]
+        players[0].set_player(JSON.parse(JSON.stringify(game["players"][0])))
+        players[1].set_player(JSON.parse(JSON.stringify(game["players"][1])))
+        this.player1 = players[0]
+        this.player2 = players[1]
+
+        this.winner = JSON.parse(JSON.stringify(game["info"]["winner"]))
+        this.type = JSON.parse(JSON.stringify(game["info"]["type"]))
+        this.turn = JSON.parse(JSON.stringify(game["info"]["turn"]))
+
+        this.start = JSON.parse(JSON.stringify(game["info"]["start"]))
 
     }
+
+    set_player(json_game){
+        this.win_cnt = JSON.parse(json_player["win_cnt"])
+        this.lose_cnt = JSON.parse(json_player["lose_cnt"])
+        this.draw_cnt = JSON.parse(json_player["draw_cnt"])
+        this.name = JSON.parse(JSON.stringify(json_player["name"]))
+        this.cl = JSON.parse(JSON.stringify(json_player["cl"]))
+        this.check = JSON.parse(JSON.stringify(json_player["check"]))
+        this.move_history = JSON.parse(json_player["move_history"])
+
+    }
+
 
     saveGame(to_destination, players, board, info){
         gameutil.save_game(to_destination, players, board, info)
@@ -160,7 +205,11 @@ class Game{
 
     }
     newGame(){
+        var game = new Game("normal", l_board,
+                            0, players[0], players[1], "")
+        gameutil.game = JSON.parse(JSON.stringify(game))
         gameutil.new_game()
+
     }
 }
 
@@ -176,11 +225,16 @@ function create_player(){
     return players
 }
 
+
+
+
 function create_game(){
-    // nstructor(type = "normal", board, turn, player1, player2, winner)
-    var game = new Game("normal", l_board, 0, players[0], players[1], "");
-    game.loadGame("./newGame.json")
-    return game
+    players = create_player();
+    var g = new Game()
+    g.newGame()
+    gameutil.add_to_all_players(JSON.parse(JSON.stringify(players[0])))
+    gameutil.add_to_all_players(JSON.parse(JSON.stringify(players[1])))
+    game = g;
 }
 
 // TO-DO add has_vertical, has_horizontal, has diagonal move to Unit class
@@ -206,7 +260,8 @@ function is_draw(start_index, board){
 
 }
 
-function is_mate(start_index, board){
+
+function is_mate(start_index, board, b_unit_indices, w_unit_indices){
     var start_unit = board[start_index]
     var tar_king_index;
     var attacking_unit_indices;
@@ -217,14 +272,14 @@ function is_mate(start_index, board){
     if(attack_unit_color === "black"){
         tar_king_index = w_king_pos;
         defend_unit_color = "white";
-        attacking_unit_indices = black_unit_indices;
-        defending_unit_indices = white_unit_indices;
+        attacking_unit_indices = b_unit_indices;
+        defending_unit_indices = w_unit_indices;
     }
     else{
         defend_unit_color = "black";
         tar_king_index = b_king_pos;
-        attacking_unit_indices = white_unit_indices;
-        defending_unit_indices = black_unit_indices;
+        attacking_unit_indices = w_unit_indices;
+        defending_unit_indices = b_unit_indices;
     }
 
     // first check if king can move
@@ -323,13 +378,10 @@ function is_mate(start_index, board){
                     }
                 }
             }
-
             )
 
             if(can_rescue) return false;
         }
-
-
     }
 
     else if((up_index - lp_index) % 7 == 0){
@@ -347,12 +399,9 @@ function is_mate(start_index, board){
                         }
                     }
                 }
-
             })
 
-
             if(can_rescue) return false;
-
 
         }
     }
@@ -360,17 +409,41 @@ function is_mate(start_index, board){
 
 
 
-
+    // now vertical
     if(start_unit.unit_type === "soldier" ||
             start_unit.unit_type === "rock" || start_unit.unit_type === "queen"){
         for(j = up_index - 8; j > lp_index; j -= 8){
             defending_unit_indices.forEach(function(uindex) {
-                if(is_valid_mv(uindex, j, board)){
-                    if(check(uindex, j, board, defend_unit_color) === -1){
-                        can_rescue = true;
-                        return;
+                var def_unit = board[uindex]
+                if(def_unit.unit_type === "queen" || def_unit.unit_type ===
+                        "rock"){
+                    if(is_valid_mv(uindex, j, board)){
+                        if(check(uindex, j, board, defend_unit_color) === -1){
+                            can_rescue = true;
+                            return;
+                        }
                     }
                 }
+                else if(def_unit.unit_type === "soldier"){
+                    if(j < uindex && defend_unit_color === "white"){
+                        if(is_valid_mv(uindex, j, board)){
+                            if(check(uindex, j, board, defend_unit_color) === -1){
+                                can_rescue = true;
+                                return;
+                            }
+                        }
+                    }
+                    else if(j > uindex && defend_unit_color === "black")
+                        if(is_valid_mv(uindex, j, board)){
+                            if(check(uindex, j, board, defend_unit_color) === -1){
+                                can_rescue = true;
+                                return;
+                            }
+                        }
+
+                }
+
+
             })
 
 
@@ -445,16 +518,19 @@ function is_valid_vertical(start_index, target_index, board){
         else{
             if(dist > 8) return false
             if(cl === "white"){
-                if(target_index > start_index) return false
+                if(target_index >= start_index) return false
+                return true;
             }
             if(cl === "black"){
-                if(target_index < start_index) return false
+                if(target_index <= start_index) return false
+                return true;
             }
         }
     }
     var found = false
 
     for(var i = Math.max(start_index, target_index) - 8; i >= Math.min(start_index, target_index); i-=8){
+
         if(board[i].unit_type !== "empty" && board[i] !== lp_unit){
 
             return false;
@@ -473,7 +549,6 @@ function is_valid_vertical(start_index, target_index, board){
     return true;
 }
 
-
 //! this function always starts from upper position on the board to the lower position and
 // checks if they can meet together with a horizontal move of starter
 function is_valid_horizontal(start_index, target_index, board){
@@ -483,7 +558,8 @@ function is_valid_horizontal(start_index, target_index, board){
     var up_unit= board[Math.max(start_index, target_index)]
     var lp_unit = board[Math.min(start_index, target_index)]
     var up_pos = Math.max(start_index, target_index)
-    var lp_pos = Math.min(start_index, target_index)
+    var lp_pos =
+            Math.min(start_index, target_index)
     //
     var king = start_unit.unit_type === "king"
     var dist = Math.abs(start_index - target_index)
@@ -579,22 +655,10 @@ function is_valid_diagonal(start_index, target_index, board){
     return true;
 }
 
-function get_unit_index(board, w_unit_indices, b_unit_indices, id){
-    var utype = board[index].unit_type
-    if(utype === "black"){
-        return b_unit_indices[id]
-    }
-    else if(utype === "white"){
-        return w_unit_indices[id]
-    }
-    else{
-        return -1
-    }
 
-}
-
-
-function create_table(){
+// this function creates and returns a board, with pieces in their default position.
+// It initializes black_unit_indices, white_unit_indices and returns a board.
+function create_table(black_unit_indices, white_unit_indices){
     var board = []
     // each team has 16 pieces and an array(black_unit_indices or white_unit_indices)
     // is dedicated to it, index_by_team is an integer between 0 and 16 for
@@ -721,7 +785,17 @@ function create_table(){
 // returns position of threatened king, if no one, returns -1
 // It creates a virtual board, makes a movement and checks if
 // in that scenario the king is threatened or not.
+
+
+// It checks if a given index is within the range of board or not.
+function is_index_out_of_range(index){
+    if(index > 63 || index < 0 || index === undefined) return true;
+    return false;
+}
+
 function check(start_index, target_index, board, color){
+    if(is_index_out_of_range(start_index) || is_index_out_of_range(target_index))
+        return false;
     var future_board = JSON.parse(JSON.stringify(board));
     var future_white_unit_indices = JSON.parse(JSON.stringify(white_unit_indices));
     var future_black_unit_indices = JSON.parse(JSON.stringify(black_unit_indices));
@@ -786,8 +860,8 @@ function get_unit_type(index){
 
 //! start_index, target_index are positions in board
 function is_valid_mv(start_index, target_index, board){
-    if(start_index < 0 || start_index > 63) return false;
-    if(target_index < 0 || target_index > 63) return false;
+    if(is_index_out_of_range(start_index) || is_index_out_of_range(target_index))
+        return false;
     var start_unit = board[start_index]
     var tar_unit = board[target_index]
     var cl = player_turn == 0 ? "white" : "black"
@@ -836,17 +910,21 @@ function is_valid_mv(start_index, target_index, board){
 // when the game is finished, it updates players statistics
 function update_statistics(winner, loser){
 
-
-    if(winner !== ""){
-        winner.win_cnt++;
-        loser.lose_cnt++;
+    if(winner === players[0]){
+        players[0].win_cnt++;
+        players[1].lose_cnt++;
+    }
+    else if(winner === players[1]){
+        players[1].win_cnt++;
+        players[0].lose_cnt++;
     }
     else{
         players[0].draw_cnt++;
         players[1].draw_cnt++;
     }
 
+    var jsonObject = JSON.parse(JSON.stringify(game))
 
+    gameutil.update_high_score(jsonObject)
 
 }
-
