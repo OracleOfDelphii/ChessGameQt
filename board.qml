@@ -1,35 +1,43 @@
-import QtQml.Models 2.12
+import QtQuick 2.15
+import QtQuick.Controls 2.15
 import QtQuick.Window 2.2
-import QtQuick 2.9
+import QtQml 2.12
+
 import QtQuick.Layouts 1.3
-import QtQuick.Controls 2.12
 import io.qt.examples.gameutils 1.0
+import QtQuick.Controls.Material 2.0
+
+
 import "graphic.js" as Graphic
 import "logic.js" as Logic
 
-
-
-Window {
+ApplicationWindow {
 
     GameUtils{
         id:gameutil
     }
 
-
     id: main
-    color: "black"
+
     visible: true
     title: qsTr("Chess game")
     height: 454
-    x: 1000
-    y: 1000
-    width: 534
+    color: "#211e1e"
+    width: 492
+
+
+    Material.theme: Material.Dark
+    Material.accent: Material.BlueGrey
+    Material.primary : Material.Red
+
     property int dropped_ind: -1
     property int grabbed_ind: -1
     property bool is_dropped: false
-    property var game : Logic.create_game()
-    property var l_board:  Logic.create_table()
-    property var players: Logic.create_player()
+    property var players : []
+    property var game : []
+    property var l_board:
+        Logic.create_table(black_unit_indices, white_unit_indices)
+
     property string last_move
     property int player_turn : 0
     property var starter : "white"
@@ -42,6 +50,7 @@ Window {
 
 
     GridLayout {
+
         id: maingrid
         width: parent.width
         height: parent.height
@@ -59,6 +68,7 @@ Window {
                 Layout.fillWidth: false
                 opacity: 0.5
                 color: "#20caca"
+
                 transformOrigin: Item.Top
                 z: 1
 
@@ -112,7 +122,7 @@ Window {
                 id: game_area
                 y: 30
                 height: 384
-
+                width: 384
                 MouseArea{
                     rotation: 0
                     id: marea
@@ -129,7 +139,9 @@ Window {
                     onReleased: {
                         dropped_ind = bg_grid.indexAt(mouseX, mouseY)
                         var dropped_cell = grid16.itemAt(mouseX, mouseY)
-                        var move_state = Logic.try_move(l_board, grabbed_ind, dropped_ind);
+                        var move_state =
+                                Logic.try_move(l_board,
+                                               grabbed_ind, dropped_ind);
                         if(move_state !== 0){
                             dropped_cell.src = ""
                             Graphic.add_last_move()
@@ -138,16 +150,10 @@ Window {
                         }
                         else if(move_state === -1){
                             Graphic.add_last_move()
-                            console.log("EEEEEEEEEEEEEND")
                         }
 
 
-                        var info = {"type": "normal",
-                            "start": "white",
-                            "turn": game.turn,
-                            "winner": game.winner}
 
-                        gameutil.save_game("./test.json", players, l_board, info)
                     }
 
                     onPressed: {
@@ -156,10 +162,14 @@ Window {
                         grabbed_ind = grid16.indexAt(mouseX, mouseY)
 
                         if(l_board[grabbed_ind].ucolor === "white"){
-                            white_unit_indices[l_board[grabbed_ind].id] =  grabbed_ind
+
+                            white_unit_indices[l_board[grabbed_ind].id] =
+                                    grabbed_ind
                         }
                         if(l_board[grabbed_ind].ucolor === "black"){
-                            black_unit_indices[l_board[grabbed_ind].id] = grabbed_ind
+
+                            black_unit_indices[l_board[grabbed_ind].id] =
+                                    grabbed_ind
                         }
                     }
 
@@ -191,7 +201,7 @@ Window {
                     }
                 }
 
-                GridView {
+                GridView{
                     width: 8 * 48
                     height: 8 * 48
                     interactive: false
@@ -209,13 +219,14 @@ Window {
                         is_white: l_board[number].ucolor === "white"
                     }
 
-                    move: Transition {
-                        // duration looks more on android, needs to be adjusted \(-_-)/
-                        NumberAnimation { properties: "x,y"; duration: 125 }
+                    move: Transition{
+                        // duration looks more on android,
+                        //needs to be adjusted \(-_-)/
+                        NumberAnimation{ properties: "x,y"; duration: 125 }
                     }
                 }
 
-                ListModel {
+                ListModel{
                     id: boardModel
                     Component.onCompleted: {
                         for(var i = 0; i <= 63; i++){
@@ -228,7 +239,8 @@ Window {
                     id: bgModel
                     Component.onCompleted: {
                         for(var i = 0; i <= 63; i++){
-                            append({"number": i , "bcolor": Graphic.cell_color(i)})
+                            append({"number": i ,
+                                       "bcolor": Graphic.cell_color(i)})
                         }
                     }
 
@@ -304,47 +316,96 @@ Window {
 
         }
     }
-    Rectangle{
-        width: 150
-        height: 454
-        x: 390
+
+    Rectangle {
+        id: rectangle
+        x: game_area.width + 5
         y: 0
-        color: "gray"
+        width: main.width - game_area.width
+        height: main.height
+        color: "Black"
+    }
+
+    Drawer {
+        background: Rectangle {
+            color: "Black"
+            Rectangle {
+                x: parent.width - 1
+                width: 1
+                height: parent.height
+                color: "Black"
+            }
+        }
+
+
+        id: drawer
+        width: main.width
+        height:main.height
+        edge: Qt.RightEdge
+        visible: true
+        dragMargin: main.width - game_area.width - 5
+
+        y: 0
         Column {
+
             id: right_panel
-            width: parent.width
-            height: parent.height
+            x: 0
+            y: 5
+            width: drawer.width
+            height: 203
             spacing: 1
 
             Button {
-                y: 10
-                width: parent.width
+                width: drawer.width - 20
+                height: 60
                 id: button1
+                highlighted: false
                 text: qsTr("New")
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                onClicked: {
+
+                    Logic.create_game()
+                    Add_playerForm.visible = true
+
+                }
+
             }
             Button {
-                width: parent.width
+
+                width: drawer.width - 20
+                height: 60
                 id: button2
                 text: qsTr("Load")
+                anchors.horizontalCenter: parent.horizontalCenter
+                flat: false
+                highlighted: false
             }
 
             Button {
-                width: parent.width
+                width: drawer.width - 20
+                height: 60
                 id: button3
                 text: qsTr("Save")
+                anchors.horizontalCenter: parent.horizontalCenter
+                highlighted: false
             }
 
             Button {
-                width: parent.width
+                width: drawer.width - 20
+                height: 60
                 id: button4
                 text: qsTr("About")
+                anchors.horizontalCenter: parent.horizontalCenter
+                highlighted: false
             }
-
-
         }
     }
 
 
 
+
 }
+
+
 
