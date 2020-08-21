@@ -16,5 +16,9 @@
         <file>images/w_soldier.png</file>
         <file>Units.qml</file>
         <file>logic.js</file>
+        <file>Add_player.qml</file>
+        <file>Add_playerForm.ui.qml</file>
+        <file>Ranking.qml</file>
+        <file>RankingForm.ui.qml</file>
     </qresource>
 </RCC>

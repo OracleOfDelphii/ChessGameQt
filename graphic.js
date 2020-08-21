@@ -1,7 +1,22 @@
-.import "logic.js" as Logic
+
 // TO-DO, [color costomization]
 
 //! returns color of a cell specified with index of chess background
+
+// it returns a string showing the move in this format:  <start_cell>.<target_cell>
+function move_str(start_index, target_index){
+    var from_index = start_index
+    var col = String.fromCharCode('a'.charCodeAt(0) + from_index % 8)
+
+    var from =  col + (8 - Math.floor(from_index / 8))
+
+    var to_index = target_index
+    col = String.fromCharCode('a'.charCodeAt(0) + to_index % 8)
+    var to =  col + (8 - Math.floor(to_index / 8))
+    var move = from + '.' + to
+    return move
+}
+
 function cell_color(index){
     if(index === -1) return ""
     var color1 = "Black"
@@ -27,7 +42,7 @@ function cell_color(index){
 
 //! adds last move to last 5 move lists
 function add_last_move(){
-    var move = Logic.move_str(grabbed_ind, dropped_ind)
+    var move = move_str(grabbed_ind, dropped_ind)
 
     if(l_board[dropped_ind].ucolor === "black"){
         if(black_last_5_moves.count === 5) {
@@ -48,7 +63,7 @@ function add_last_move(){
 }
 
 
-//! returns the icon for a piece by getting information from logical board
+//! returns the icon of a piece by getting information from logical board
 //! w_{name}.png for white units, b_{name}.png for black units
 //! empty units have no src
 function unit_src(index){

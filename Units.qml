@@ -1,11 +1,11 @@
-import QtQuick 2.9
+import QtQuick 2.12
 import QtQuick.Layouts 1.3
 import "graphic.js" as Graphic
 
 
-// this is an item that will contain an image of a chess piece
+// Chess piece
 Item{
-    id: cell_unit
+    id: chess_piece
     width: 48
     height: 48
 
