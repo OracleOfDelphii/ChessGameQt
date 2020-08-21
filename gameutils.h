@@ -7,6 +7,7 @@
 #include <QString>
 #include <qqml.h>
 #include<QJsonObject>
+#include<QJsonDocument>
 
 class GameUtils: public QObject
 {
@@ -29,6 +30,16 @@ public:
     Q_INVOKABLE
     bool new_game();
 
+    bool get_players();
+
+    Q_INVOKABLE
+    int add_to_all_players(QJsonObject player);
+
+    Q_INVOKABLE
+    bool update_high_score(QJsonObject game);
+
+
+
 
 
 
@@ -43,6 +54,8 @@ signals:
 
 
 private:
+    bool load_json(QString path, QJsonObject &obj);
+    bool save_json(QString path, QJsonObject &obj);
     QJsonObject m_game;
 };
 

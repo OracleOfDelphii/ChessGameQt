@@ -4,8 +4,8 @@
 #include<QJsonValue>
 
 bool GameUtils::save_game(QString path,
-                           QJsonArray players,
-                           QJsonObject board, QJsonObject info){
+                          QJsonArray players,
+                          QJsonObject board, QJsonObject info){
 
     QFile saveFile(path);
 
@@ -17,42 +17,58 @@ bool GameUtils::save_game(QString path,
     game.insert("players", players);
     game.insert("board", board);
     game.insert("info", info);
+    game.insert("dir", path);
     saveFile.write(QJsonDocument(game).toJson());
     return true;
 }
 
-bool GameUtils::load_game(QString path){
+bool GameUtils::save_json(QString path, QJsonObject& obj){
+    QFile saveFile(path);
+
+    if(!saveFile.open(QIODevice::WriteOnly)){
+        qWarning("could'nt write file");
+        return false;
+    }
+    saveFile.write(QJsonDocument(obj).toJson());
+    saveFile.close();
+    return true;
+}
+
+bool GameUtils::load_json(QString path, QJsonObject &obj){
     QString val;
     QFile file;
     file.setFileName(path);
-    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+
+    if(!file.open(QIODevice::ReadWrite | QIODevice::Text)){
         qWarning("Can't open this shit");
         return false;
     }
 
     val = file.readAll();
     file.close();
+    obj = QJsonDocument::fromJson(val.toUtf8()).object();
+    return true;
 
-    QJsonDocument game_file = QJsonDocument::fromJson(val.toUtf8());
-
-    QJsonObject game = game_file.object();
+}
+bool GameUtils::load_game(QString path){
+    QJsonObject game;
+    load_json(path, game);
     setGame(game);
 
     return true;
 
 }
 
-GameUtils::GameUtils(QObject *parent) :
-    QObject(parent)
-{
+GameUtils::GameUtils(QObject *parent):
+    QObject(parent){
 }
 
-QJsonObject GameUtils::game()
-{
-
-
+QJsonObject GameUtils::game(){
     return m_game;
 }
+
+
+
 #include<iostream>
 void GameUtils::setGame(QJsonObject& game){
     if(game == m_game){
@@ -63,44 +79,77 @@ void GameUtils::setGame(QJsonObject& game){
 }
 
 bool GameUtils::new_game(){
-    QFile saveFile("./newGame.json");
-    if(!saveFile.open(QIODevice::WriteOnly)){
-        qWarning("could'nt open save file");
-        return false;
-    }
+    QString save_path = "./newGame.json";
+    QJsonObject game = m_game;
 
-    QJsonObject game;
-    QJsonObject player1;
-    player1.insert("name", "default_1");
-    player1.insert("cl", "white");
-    player1.insert("check", false);
-    player1.insert("move_history", "[]");
-    player1.insert("win_cnt", 0);
-    player1.insert("lose_cnt", 0);
-    player1.insert("draw_cnt", 0);
-    QJsonObject player2 = player1;
-    player2["name"] = "default_2";
-    player2["cl"]= "black";
-    QJsonArray players;
-    players.insert(0, player1);
-    players.insert(1, player2);
-
-    QJsonObject info;
-    info.insert("turn", 0);
-    info.insert("start", "white");
-    info.insert("type", "normal");
-    info.insert("winner", "");
-
-
-
-    QJsonArray board;
-
-    game.insert("players" , players);
-    game.insert("board", board);
-    game.insert("info", info);
-    saveFile.write(QJsonDocument(game).toJson());
+    save_json(save_path, game);
     setGame(game);
     return true;
 }
 
+// It adds the a new player to the highscore
+// If the player exists, returns 0
+// If the file can't be retrieved, returns -1
+int GameUtils::add_to_all_players(QJsonObject player){
 
+    QString path = "./all_players.json";
+    QJsonObject all_players;
+    if(!load_json(path, all_players)){
+        return -1;
+    }
+
+    QString name = player.value("name").toString();
+    QJsonObject stats;
+    stats.insert("win", player.value("win"));
+    stats.insert("lose", player.value("lose"));
+    stats.insert("draw", player.value("draw"));
+
+    if(!all_players.contains(player.value("name").toString())){
+        all_players.insert(name, stats);
+        save_json(path, all_players);
+        return 1;
+
+    }
+
+
+
+    return 0;
+}
+
+bool GameUtils::update_high_score(QJsonObject game)
+{
+
+    QJsonObject player1 = game.value("player1").toObject();
+    QJsonObject player2 = game.value("player2").toObject();
+    QJsonObject ranking;
+    if(!load_json("./ranking.json", ranking)){
+        return false;
+    }
+
+    ranking.remove(player1.value("name").toString());
+    ranking.remove(player2.value("name").toString());
+
+    QJsonObject stat_p1;
+    QJsonObject stat_p2;
+
+    stat_p1.insert("win_cnt",
+                   player1.value("win_cnt").toInt());
+    stat_p1.insert("lose_cnt",
+                   player1.value("lose_cnt").toInt());
+    stat_p1.insert("draw_cnt",
+                   player1.value("draw_cnt").toInt());
+
+    stat_p2.insert("win_cnt",
+                   player2.value("win_cnt").toInt());
+    stat_p2.insert("lose_cnt",
+                   player2.value("lose_cnt").toInt());
+    stat_p2.insert("draw_cnt",
+                   player2.value("draw_cnt").toInt());
+
+    ranking.insert(player1.value("name").toString(), stat_p1);
+    ranking.insert(player2.value("name").toString(), stat_p2);
+
+    save_json("./ranking.json", ranking);
+
+    return true;
+};
