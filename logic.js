@@ -103,7 +103,6 @@ function try_move(board, start_index, target_index){
             }
 
             if(threatened !== -1){
-                console.log(start_index)
                 threatened_king = threatened
                 var winner = ""
                 var loser = ""
@@ -121,12 +120,12 @@ function try_move(board, start_index, target_index){
                                        players, l_board, info)
                     return -1;
                 }
-                else if(is_draw(target_index, board)){
-                    update_statistics(winner, loser)
-                    gameutil.save_game("./newGame.json",
-                                       players, l_board, info)
-                    return -1;
-                }
+            }
+            else if(is_draw(board)){
+                update_statistics(winner, loser)
+                gameutil.save_game("./newGame.json",
+                                   players, l_board, info)
+                return -1;
             }
 
 
@@ -229,6 +228,7 @@ function create_player(){
 
 
 function create_game(){
+    console.log(Graphic.cell_color(0))
     players = create_player();
     var g = new Game()
     g.newGame()
@@ -256,7 +256,101 @@ class Unit{
     }
 }
 
-function is_draw(start_index, board){
+
+// insufficient
+
+function is_insufficient(board){
+    /*
+      king against king
+      king against king and bishop
+      king against king and queen
+      king and bishop against king and bishop,
+with both bishops on squares of the same color
+      */
+
+    var alive_black = ""
+    var alive_white = ""
+
+    var b_bishop_cnt = 0;
+    var w_bishop_cnt = 0;
+    var bg_cl_w_bishop;
+    var bg_cl_b_bishop;
+
+black_unit_indices.forEach(function(uindex){
+        if(uindex !== -1){
+            alive_black += (board[uindex].unit_type[0])
+
+            if(board[uindex].unit_type === "bishop"){
+                bg_cl_b_bishop = Graphic.cell_color(uindex)
+                b_bishop_cnt++;
+            }
+
+            if(b_bishop_cnt > 1){
+                return false;
+            }
+        }
+    })
+    white_unit_indices.forEach(function(uindex){
+            if(uindex !== -1){
+                alive_white += (board[uindex].unit_type[0])
+
+                if(board[uindex].unit_type === "bishop"){
+                    bg_cl_w_bishop = Graphic.cell_color(uindex)
+                    w_bishop_cnt++;
+                }
+
+                if(w_bishop_cnt > 1){
+                    return false;
+                }
+            }
+        })
+
+
+    if(alive_black === "kb" || alive_black === "bk"){
+        if(alive_black === "bk" || alive_black === "kb"){
+            if(bg_cl_b_bishop === bg_cl_w_bishop){
+                return true;
+            }
+            return false;
+        }
+    }
+
+    if(alive_black === "k"){
+        if(alive_white === "kb" || alive_white === "bk"){
+            return true;
+        }
+        if(alive_white === "kq" || alive_white === "qk"){
+            return true;
+        }
+        return false;
+    }
+    if(alive_white === "k"){
+        if(alive_black === "kb" || alive_black === "bk"){
+            return true;
+        }
+        if(alive_black === "kq" || alive_black === "qk"){
+            return true;
+        }
+        return false;
+    }
+return false;
+}
+
+
+function is_draw(board){
+if(is_insufficient(board)){
+    return true;
+}
+
+return false;
+}
+
+
+function is_three_fold(board){
+
+}
+
+function is_fifty_move(board){
 
 }
 
@@ -367,13 +461,15 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
         // \
         for(var j = up_index - 9; j > lp_index; j -= 9){
             defending_unit_indices.forEach(function(uindex) {
-                var potential_rescuer = board[uindex];
-                if(potential_rescuer.unit_type === "bishop" ||
-                        potential_rescuer.unit_type === "queen"){
-                    if(is_valid_mv(uindex, j, board)){
-                        if(check(uindex, j, board, defend_unit_color) === -1){
-                            can_rescue = true;
-                            return;
+                if(uindex >= 0){
+                    var potential_rescuer = board[uindex];
+                    if(potential_rescuer.unit_type === "bishop" ||
+                            potential_rescuer.unit_type === "queen"){
+                        if(is_valid_mv(uindex, j, board)){
+                            if(check(uindex, j, board, defend_unit_color) === -1){
+                                can_rescue = true;
+                                return;
+                            }
                         }
                     }
                 }
@@ -389,13 +485,15 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
         for(j = up_index - 7; j > lp_index; j -= 7){
 
             defending_unit_indices.forEach(function(uindex) {
-                var potential_rescuer = board[uindex];
-                if(potential_rescuer.unit_type === "bishop" ||
-                        potential_rescuer.unit_type === "queen"){
-                    if(is_valid_mv(uindex, j, board)){
-                        if(check(uindex, j, board, defend_unit_color) === -1){
-                            can_rescue = true;
-                            return;
+                if(uindex >= 0){
+                    var potential_rescuer = board[uindex];
+                    if(potential_rescuer.unit_type === "bishop" ||
+                            potential_rescuer.unit_type === "queen"){
+                        if(is_valid_mv(uindex, j, board)){
+                            if(check(uindex, j, board, defend_unit_color) === -1){
+                                can_rescue = true;
+                                return;
+                            }
                         }
                     }
                 }
@@ -409,23 +507,18 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
 
 
 
-    // now vertical
-    if(start_unit.unit_type === "soldier" ||
-            start_unit.unit_type === "rock" || start_unit.unit_type === "queen"){
-        for(j = up_index - 8; j > lp_index; j -= 8){
+    // now horizontal
+    if(start_unit.unit_type === "rock" || start_unit.unit_type === "queen"){
+        if(Math.floor(up_index / 8) !== Math.floor(lp_index / 8)){
+            return false;
+        }
+
+        for(j = up_index; j > lp_index; j--){
             defending_unit_indices.forEach(function(uindex) {
-                var def_unit = board[uindex]
-                if(def_unit.unit_type === "queen" || def_unit.unit_type ===
-                        "rock"){
-                    if(is_valid_mv(uindex, j, board)){
-                        if(check(uindex, j, board, defend_unit_color) === -1){
-                            can_rescue = true;
-                            return;
-                        }
-                    }
-                }
-                else if(def_unit.unit_type === "soldier"){
-                    if(j < uindex && defend_unit_color === "white"){
+                if(uindex >= 0){
+                    var def_unit = board[uindex]
+                    if(def_unit.unit_type === "queen" || def_unit.unit_type ===
+                            "rock"){
                         if(is_valid_mv(uindex, j, board)){
                             if(check(uindex, j, board, defend_unit_color) === -1){
                                 can_rescue = true;
@@ -433,16 +526,7 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
                             }
                         }
                     }
-                    else if(j > uindex && defend_unit_color === "black")
-                        if(is_valid_mv(uindex, j, board)){
-                            if(check(uindex, j, board, defend_unit_color) === -1){
-                                can_rescue = true;
-                                return;
-                            }
-                        }
-
                 }
-
 
             })
 
@@ -487,6 +571,9 @@ function is_valid_jump(start_index, target_index, board){
 // this function always starts from upper position on the board to the lower position and
 // checks if they can meet together with a vertical move of starter
 function is_valid_vertical(start_index, target_index, board){
+    if(start_index % 8 !== target_index % 8){
+        return false;
+    }
 
     var start_unit = board[start_index]
     var tar_unit = board[target_index]
@@ -607,16 +694,19 @@ function is_valid_diagonal(start_index, target_index, board){
         if(dist !== 9 &&  dist !== 7) return false
     }
 
+
     if(soldier){
         if(tar_unit.unit_type === "empty"){
             return false
         }
-        if(start_unit.cl === starter){
+        console.log(tar_unit.unit_type)
+
+        if(start_unit.cl === "white"){
             if(start_unit !== up_unit){
                 return false
             }
         }
-        else{
+        else if(start_unit.cl === "black"){
             if(start_unit !== lp_unit){
                 return false
             }
@@ -656,10 +746,8 @@ function is_valid_diagonal(start_index, target_index, board){
 }
 
 
-// this function creates and returns a board, with pieces in their default position.
-// It initializes black_unit_indices, white_unit_indices and returns a board.
-function create_table(black_unit_indices, white_unit_indices){
-    var board = []
+// initializes the arguments with default chess position.
+function create_table(board, black_unit_indices, white_unit_indices){
     // each team has 16 pieces and an array(black_unit_indices or white_unit_indices)
     // is dedicated to it, index_by_team is an integer between 0 and 16 for
     // accessing the nth element of these arrays
@@ -778,7 +866,6 @@ function create_table(black_unit_indices, white_unit_indices){
             }
         }
     }
-    return board;
 }
 
 //! checks if the player is check
@@ -919,8 +1006,8 @@ function update_statistics(winner, loser){
         players[0].lose_cnt++;
     }
     else{
-        players[0].draw_cnt++;
         players[1].draw_cnt++;
+        players[0].draw_cnt++;
     }
 
     var jsonObject = JSON.parse(JSON.stringify(game))
