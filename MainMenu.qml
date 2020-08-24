@@ -2,6 +2,7 @@ import QtQuick 2.0
 import QtQuick.Controls 2.5
 import QtQuick.Controls.Material 2.3
 import io.qt.examples.gameutils 1.0
+import io.qt.examples.global 1.0
 import "graphic.js" as Graphic
 import "logic.js" as Logic
 import "."

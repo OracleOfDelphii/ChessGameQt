@@ -20,12 +20,10 @@
         <file>RankingForm.ui.qml</file>
         <file>AddPlayer.qml</file>
         <file>GameResult.qml</file>
-        <file>images/QtIcon.png</file>
-        <file>images/flower.png</file>
         <file>MainMenu.qml</file>
         <file>GameForm.qml</file>
         <file>images/colortable.png</file>
-        <file>GlobalVariables.qml</file>
         <file>qmldir</file>
+        <file>GlobalVariables.qml</file>
     </qresource>
 </RCC>

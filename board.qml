@@ -22,7 +22,6 @@ ApplicationWindow {
                            Global.white_unit_indices)
         Global.game = Logic.create_game("player1","player2")
         load.source = "MainMenu.qml"
-        console.log(JSON.stringify(players))
     }
 
     property int dropped_ind: Global.dropped_ind

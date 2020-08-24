@@ -944,7 +944,7 @@ function is_index_out_of_range(index){
 }
 
 function check(start_index, target_index, board, color){
-<<<<<<< Updated upstream
+
     if(is_index_out_of_range(start_index) ||
             is_index_out_of_range(target_index))
         return false;
@@ -956,12 +956,12 @@ function check(start_index, target_index, board, color){
     var future_black_unit_indices =
             JSON.parse(JSON.stringify(black_unit_indices));
 
-=======
+
     var future_board = Object.assign([], board);
     var future_white_unit_indices = Object.assign([], white_unit_indices)
     var future_black_unit_indices = Object.assign([], black_unit_indices)
     var tmp_turn = player_turn
->>>>>>> Stashed changes
+
     var white_king_pos = w_king_pos
     var black_king_pos = b_king_pos
 
