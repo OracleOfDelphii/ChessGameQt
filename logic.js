@@ -1,5 +1,8 @@
 // TO-DO check for Draw
 
+.import "graphic.js" as Graphic
+
+
 
 class Player {
     constructor(name, color){
@@ -23,14 +26,13 @@ class Player {
     }
 
     set_player(json_player){
-        this.win_cnt = JSON.parse(json_player["win_cnt"])
-        this.lose_cnt = JSON.parse(json_player["lose_cnt"])
-        this.draw_cnt = JSON.parse(json_player["draw_cnt"])
-        this.name = JSON.parse(JSON.stringify(json_player["name"]))
-        this.cl = JSON.parse(JSON.stringify(json_player["cl"]))
-        this.check = JSON.parse(JSON.stringify(json_player["check"]))
-        this.move_history = JSON.parse(JSON.stringify(
-                                           json_player["move_history"]))
+        this.win_cnt =  json_player["win_cnt"]
+        this.lose_cnt =  json_player["lose_cnt"]
+        this.draw_cnt =  json_player["draw_cnt"]
+        this.name =  json_player["name"]
+        this.cl =  json_player["cl"]
+        this.check =  json_player["check"]
+        this.move_history = json_player["move_history"]
 
     }
 
@@ -47,18 +49,20 @@ class Player {
 // If the move is impossible, but game is not finished, it returns 0
 // if the game is finished, it returns -1
 // If the move is possible, it returns 1
-function try_move(board, start_index, target_index){
+function try_move(board, black_unit_indices,
+                  white_unit_indices, start_index, target_index){
     // start_unit is the unit that player wants to move
     // target_unit is the unit in target_cell, if
     // the target is empty, there is an empty unit there
+
     var target_unit = board[target_index]
     var start_unit = board[start_index]
     var cl = players[player_turn].cl
     var op_cl = (cl === "white" ? "black" : "white")
 
     if(start_unit.cl === cl){
-        var valid_move = Logic.is_valid_mv(start_index, target_index, board)
-        var threated = Logic.check(start_index, target_index, board, cl)
+        var valid_move = is_valid_mv(start_index, target_index, board)
+        var threated = check(start_index, target_index, board, cl)
         if(valid_move && (threated === -1)){
             threatened_king = -1
             if(start_index === b_king_pos){
@@ -82,13 +86,13 @@ function try_move(board, start_index, target_index){
                 }
             }
 
-            var threatened = check(start_index, target_index, board, op_cl)
-
             // move in logical board
+
+            var threatened = check(start_index, target_index, board, op_cl)
 
             board[start_index].index = target_index
             board[target_index] = board[start_index]
-            board[start_index] = empty_unit(-1)
+            board[start_index] = empty_unit()
 
 
             players[player_turn].add_move(move_str(start_index, target_index))
@@ -106,10 +110,11 @@ function try_move(board, start_index, target_index){
                 threatened_king = threatened
                 var winner = ""
                 var loser = ""
-                if(is_mate(target_index, board, black_unit_indices, white_unit_indices)){
+                if(is_mate(target_index, board, black_unit_indices,
+                           white_unit_indices)){
                     game.winner = players[player_turn]
                     winner = game.winner
-                    loser = player_turn === 0 ? players[1] : players[0];
+                    loser = player_turn === 0 ? players[1] : players;
                     update_statistics(winner, loser)
                     var info = {"type": "normal",
                         "start": "white",
@@ -118,6 +123,7 @@ function try_move(board, start_index, target_index){
 
                     gameutil.save_game("./newGame.json",
                                        players, l_board, info)
+
                     return -1;
                 }
             }
@@ -125,14 +131,15 @@ function try_move(board, start_index, target_index){
                 update_statistics(winner, loser)
                 gameutil.save_game("./newGame.json",
                                    players, l_board, info)
+
                 return -1;
             }
 
 
             return 1;
         }
-
     }
+
     return 0;
 }
 
@@ -151,8 +158,7 @@ function move_str(start_index, target_index){
 }
 
 class Game{
-    constructor(type = "normal", board =
-                l_board, turn = 0, player1, player2, winner = "",
+    constructor(type = "normal", board = [], turn = 0, player1, player2, winner = "",
                 start = "white") {
         this.type = type
         this.board = board
@@ -164,20 +170,23 @@ class Game{
     }
 
 
-    loadGame(savefile_path){
-        gameutil.load_game(savefile_path)
+    loadGame(savefile_path)
+    {
+        this.initNewGame("23230", "2323")
+        gameutil.load_game(qsTr(savefile_path))
         var game = gameutil.game
-        this.board = JSON.parse(JSON.stringify(game["board"]))
-        players[0].set_player(JSON.parse(JSON.stringify(game["players"][0])))
-        players[1].set_player(JSON.parse(JSON.stringify(game["players"][1])))
+        this.board = game["board"]
+        players[0].set_player(game["player1"])
+
+        players[1].set_player(game["player2"])
         this.player1 = players[0]
         this.player2 = players[1]
 
-        this.winner = JSON.parse(JSON.stringify(game["info"]["winner"]))
-        this.type = JSON.parse(JSON.stringify(game["info"]["type"]))
-        this.turn = JSON.parse(JSON.stringify(game["info"]["turn"]))
+        this.winner = JSON.parse(JSON.stringify(game["winner"]))
+        this.type = JSON.parse(JSON.stringify(game["type"]))
+        this.turn = JSON.parse(JSON.stringify(game["turn"]))
 
-        this.start = JSON.parse(JSON.stringify(game["info"]["start"]))
+        this.start = JSON.parse(JSON.stringify(game["start"]))
 
     }
 
@@ -197,15 +206,37 @@ class Game{
         gameutil.save_game(to_destination, players, board, info)
     }
 
+
     resetGame(){
+
+        create_table(l_board, black_unit_indices, white_unit_indices)
+
+        this.board = l_board
+
+
+
+        players[0].check = false
+        players[1].move_history = []
+
+        players[1].check = false
+        players[1].move_history = []
+
+        gameutil.game = game
 
     }
     newPlayer(){
 
     }
-    newGame(){
+
+    initNewGame(p1_name, p2_name){
+        create_table(l_board, black_unit_indices, white_unit_indices)
+
+        players = create_player(p1_name, p2_name);
+        gameutil.add_to_all_players(JSON.parse(JSON.stringify(players)))
+        gameutil.add_to_all_players(JSON.parse(JSON.stringify(players[1])))
         var game = new Game("normal", l_board,
-                            0, players[0], players[1], "")
+                            0, players, players[1], "")
+
         gameutil.game = JSON.parse(JSON.stringify(game))
         gameutil.new_game()
 
@@ -215,10 +246,10 @@ class Game{
 
 
 // for test, will be changed later
-function create_player(){
+function create_player(p1_name, p2_name){
     var players = []
-    var p1 = new Player("Ali", "white")
-    var p2 = new Player("Reza", "black")
+    var p1 = new Player(p1_name, "white")
+    var p2 = new Player(p2_name, "black")
     players.push(p1)
     players.push(p2)
     return players
@@ -227,14 +258,12 @@ function create_player(){
 
 
 
-function create_game(){
-    console.log(Graphic.cell_color(0))
-    players = create_player();
-    var g = new Game()
-    g.newGame()
-    gameutil.add_to_all_players(JSON.parse(JSON.stringify(players[0])))
-    gameutil.add_to_all_players(JSON.parse(JSON.stringify(players[1])))
-    game = g;
+function create_game(p1_name, p2_name){
+    var game = new Game()
+    players = create_player(p1_name, p2_name)
+    create_table(l_board, black_unit_indices,
+                 white_unit_indices)
+    return game
 }
 
 // TO-DO add has_vertical, has_horizontal, has diagonal move to Unit class
@@ -276,9 +305,9 @@ with both bishops on squares of the same color
     var bg_cl_w_bishop;
     var bg_cl_b_bishop;
 
-black_unit_indices.forEach(function(uindex){
+    black_unit_indices.forEach(function(uindex){
         if(uindex !== -1){
-            alive_black += (board[uindex].unit_type[0])
+            alive_black += (board[uindex].unit_type)
 
             if(board[uindex].unit_type === "bishop"){
                 bg_cl_b_bishop = Graphic.cell_color(uindex)
@@ -291,19 +320,19 @@ black_unit_indices.forEach(function(uindex){
         }
     })
     white_unit_indices.forEach(function(uindex){
-            if(uindex !== -1){
-                alive_white += (board[uindex].unit_type[0])
+        if(uindex !== -1){
+            alive_white += (board[uindex].unit_type)
 
-                if(board[uindex].unit_type === "bishop"){
-                    bg_cl_w_bishop = Graphic.cell_color(uindex)
-                    w_bishop_cnt++;
-                }
-
-                if(w_bishop_cnt > 1){
-                    return false;
-                }
+            if(board[uindex].unit_type === "bishop"){
+                bg_cl_w_bishop = Graphic.cell_color(uindex)
+                w_bishop_cnt++;
             }
-        })
+
+            if(w_bishop_cnt > 1){
+                return false;
+            }
+        }
+    })
 
 
     if(alive_black === "kb" || alive_black === "bk"){
@@ -333,16 +362,16 @@ black_unit_indices.forEach(function(uindex){
         }
         return false;
     }
-return false;
+    return false;
 }
 
 
 function is_draw(board){
-if(is_insufficient(board)){
-    return true;
-}
+    if(is_insufficient(board)){
+        return true;
+    }
 
-return false;
+    return false;
 }
 
 
@@ -378,48 +407,56 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
 
     // first check if king can move
     if(is_valid_mv(tar_king_index, tar_king_index + 1, board)){
-        if(check(tar_king_index, tar_king_index + 1, board, defend_unit_color) === -1){
+        if(check(tar_king_index, tar_king_index + 1, board, defend_unit_color)
+                === -1){
             return false;
         }
     }
 
     if(is_valid_mv(tar_king_index, tar_king_index - 1, board)){
-        if(check(tar_king_index, tar_king_index - 1, board, defend_unit_color) === -1){
+        if(check(tar_king_index, tar_king_index - 1, board, defend_unit_color)
+                === -1){
             return false;
         }
     }
 
     if(is_valid_mv(tar_king_index, tar_king_index - 8, board)){
-        if(check(tar_king_index, tar_king_index - 8, board, defend_unit_color) === -1){
+        if(check(tar_king_index, tar_king_index - 8, board, defend_unit_color)
+                === -1){
             return false;
         }
     }
 
     if(is_valid_mv(tar_king_index, tar_king_index - 9, board)){
-        if(check(tar_king_index, tar_king_index - 9, board, defend_unit_color) === -1){
+        if(check(tar_king_index, tar_king_index - 9, board, defend_unit_color)
+                === -1){
             return false;
         }
     }
     if(is_valid_mv(tar_king_index, tar_king_index + 9, board)){
-        if(check(tar_king_index, tar_king_index + 9, board, defend_unit_color) === -1){
+        if(check(tar_king_index, tar_king_index + 9, board, defend_unit_color)
+                === -1){
             return false;
         }
     }
 
     if(is_valid_mv(tar_king_index, tar_king_index + 8, board)){
-        if(check(tar_king_index, tar_king_index + 8, board, defend_unit_color) === -1){
+        if(check(tar_king_index, tar_king_index + 8, board, defend_unit_color)
+                === -1){
             return false;
         }
     }
 
     if(is_valid_mv(tar_king_index, tar_king_index - 7, board)){
-        if(check(tar_king_index, tar_king_index - 7, board, defend_unit_color) === -1){
+        if(check(tar_king_index, tar_king_index - 7, board, defend_unit_color)
+                === -1){
             return false;
         }
     }
 
     if(is_valid_mv(tar_king_index, tar_king_index + 7, board)){
-        if(check(tar_king_index, tar_king_index + 7, board, defend_unit_color) === -1){
+        if(check(tar_king_index, tar_king_index + 7, board, defend_unit_color)
+                === -1){
             return false;
         }
     }
@@ -448,7 +485,6 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
     // if the threatener is horse and
     // horse can not be killed, it's checkmate.
     if(start_unit.unit_type === "horse"){
-        console.log("END");
         return true;
     }
 
@@ -490,7 +526,8 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
                     if(potential_rescuer.unit_type === "bishop" ||
                             potential_rescuer.unit_type === "queen"){
                         if(is_valid_mv(uindex, j, board)){
-                            if(check(uindex, j, board, defend_unit_color) === -1){
+                            if(check(uindex, j, board, defend_unit_color)
+                                    === -1){
                                 can_rescue = true;
                                 return;
                             }
@@ -509,18 +546,17 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
 
     // now horizontal
     if(start_unit.unit_type === "rock" || start_unit.unit_type === "queen"){
-        if(Math.floor(up_index / 8) !== Math.floor(lp_index / 8)){
-            return false;
-        }
+
 
         for(j = up_index; j > lp_index; j--){
             defending_unit_indices.forEach(function(uindex) {
                 if(uindex >= 0){
                     var def_unit = board[uindex]
-                    if(def_unit.unit_type === "queen" || def_unit.unit_type ===
-                            "rock"){
+                    if(def_unit.unit_type === "queen" ||
+                            def_unit.unit_type === "rock"){
                         if(is_valid_mv(uindex, j, board)){
-                            if(check(uindex, j, board, defend_unit_color) === -1){
+                            if(check(uindex, j, board,
+                                     defend_unit_color) === -1){
                                 can_rescue = true;
                                 return;
                             }
@@ -540,8 +576,8 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
 }
 
 //! returns an empty unit to fill the cells with no chess piece
-function empty_unit(index){
-    return new Unit("", "empty", index)
+function empty_unit(){
+    return new Unit("", "empty", -1)
 }
 
 //! checks if horse can jump to target or not
@@ -571,13 +607,15 @@ function is_valid_jump(start_index, target_index, board){
 // this function always starts from upper position on the board to the lower position and
 // checks if they can meet together with a vertical move of starter
 function is_valid_vertical(start_index, target_index, board){
+
     if(start_index % 8 !== target_index % 8){
+
         return false;
     }
 
     var start_unit = board[start_index]
     var tar_unit = board[target_index]
-    var up_unit= board[Math.max(start_index, target_index)]
+    var up_unit = board[Math.max(start_index, target_index)]
     var lp_unit = board[Math.min(start_index, target_index)]
     var up_index = Math.max(start_index, target_index)
     var lp_index = Math.min(start_index, target_index)
@@ -616,7 +654,8 @@ function is_valid_vertical(start_index, target_index, board){
     }
     var found = false
 
-    for(var i = Math.max(start_index, target_index) - 8; i >= Math.min(start_index, target_index); i-=8){
+    for(var i = Math.max(start_index, target_index) - 8;
+        i >= Math.min(start_index, target_index); i -= 8){
 
         if(board[i].unit_type !== "empty" && board[i] !== lp_unit){
 
@@ -747,119 +786,143 @@ function is_valid_diagonal(start_index, target_index, board){
 
 
 // initializes the arguments with default chess position.
-function create_table(board, black_unit_indices, white_unit_indices){
+function create_table(board, black_unit_indices, white_unit_indices
+                      , b_king_pos, w_king_pos){
     // each team has 16 pieces and an array(black_unit_indices or white_unit_indices)
     // is dedicated to it, index_by_team is an integer between 0 and 16 for
     // accessing the nth element of these arrays
+
+
     var index_by_team = 0
 
+
     for(var i = 0; i <= 63; i++){
+
         let new_unit = new Unit()
         var cell_index = i;
 
         if((cell_index > 7 && cell_index <= 15 )) {
             new_unit = new Unit("black", "soldier", i, index_by_team)
-            board.push(new_unit)
+            board[i] = new_unit
+
             black_unit_indices[index_by_team] = i
             index_by_team++;
         }
         else if(cell_index >= 16 && cell_index < 48){
             index_by_team = 0
             new_unit = new Unit("", "empty", cell_index, -1)
-            board.push(new_unit)
+
+            board[i] = new_unit
         }
         else if((cell_index >= 48 && cell_index < 56)) {
             new_unit = new Unit("white", "soldier", i, index_by_team)
-            board.push(new_unit)
+
             white_unit_indices[index_by_team] = i
+            board[i] = new_unit
             index_by_team++;
         }
         else{
             switch(cell_index){
             case 56:
                 new_unit = new Unit("white", "rock", i, index_by_team)
-                board.push(new_unit)
+
                 white_unit_indices[index_by_team] = i
+                board[i] = new_unit
                 index_by_team++; break;
             case 57:
                 new_unit = new Unit("white", "horse", i, index_by_team)
-                board.push(new_unit)
+
                 white_unit_indices[index_by_team] = i
+                board[i] = new_unit
                 index_by_team++; break;
             case 58:
                 new_unit = new Unit("white", "bishop", i, index_by_team)
-                board.push(new_unit)
+
                 white_unit_indices[index_by_team] = i
+                board[i] = new_unit
                 index_by_team++; break;
             case 60:
                 new_unit = new Unit("white", "king", i, index_by_team)
                 w_king_pos = cell_index
-                board.push(new_unit)
+
                 white_unit_indices[index_by_team] = i
+                board[i] = new_unit
                 index_by_team++; break;
             case 59:
                 new_unit = new Unit("white", "queen", i, index_by_team)
 
                 white_unit_indices[index_by_team] = i
-                board.push(new_unit)
+                board[i] = new_unit
                 index_by_team++; break;
             case 61:
                 new_unit = new Unit("white", "bishop", i, index_by_team)
-                board.push(new_unit)
+                board[i] = new_unit
+
                 white_unit_indices[index_by_team] = i
                 index_by_team++; break;
             case 62:
                 new_unit = new Unit("white", "horse", i, index_by_team)
-                board.push(new_unit)
+
                 white_unit_indices[index_by_team] = i
+                board[i] = new_unit
                 index_by_team++; break;
             case 63:
                 new_unit = new Unit("white", "rock", i, index_by_team)
-                board.push(new_unit)
+
                 white_unit_indices[index_by_team] = i
+                board[i] = new_unit
                 index_by_team++; break;
 
 
             case 0:
                 new_unit = new Unit("black", "rock", i, index_by_team)
-                board.push(new_unit)
+
                 black_unit_indices[index_by_team] = i
+                board[i] = new_unit
                 index_by_team++; break;
             case 1:
                 new_unit = new Unit("black", "horse", i, index_by_team)
-                board.push(new_unit)
+
                 black_unit_indices[index_by_team] = i
+                board[i] = new_unit
                 index_by_team++; break;
             case 2:
                 new_unit = new Unit("black", "bishop", i, index_by_team)
-                board.push(new_unit)
+
                 black_unit_indices[index_by_team] = i
+                board[i] = new_unit
                 index_by_team++; break;
             case 4:
                 new_unit = new Unit("black", "king", i, index_by_team)
                 b_king_pos = cell_index
-                board.push(new_unit)
+
+                board[i] = new_unit
                 black_unit_indices[index_by_team] = i
                 index_by_team++; break;
             case 3:
                 new_unit = new Unit("black", "queen", i, index_by_team)
 
                 black_unit_indices[index_by_team] = i
-                board.push(new_unit)
+
+                board[i] = new_unit
+
                 index_by_team++; break;
             case 5:
                 new_unit = new Unit("black", "bishop", i, index_by_team)
-                board.push(new_unit)
+
+                board[i] = new_unit
                 black_unit_indices[index_by_team] = i
                 index_by_team++; break;
             case 6:
                 new_unit = new Unit("black", "horse", i, index_by_team)
-                board.push(new_unit)
+
+                board[i] = new_unit
                 black_unit_indices[index_by_team] = i
                 index_by_team++; break;
             case 7:
                 new_unit = new Unit("black", "rock", i, index_by_team)
-                board.push(new_unit)
+
+                board[i] = new_unit
                 black_unit_indices[index_by_team] = i
                 index_by_team++; break;
 
@@ -870,7 +933,7 @@ function create_table(board, black_unit_indices, white_unit_indices){
 
 //! checks if the player is check
 // returns position of threatened king, if no one, returns -1
-// It creates a virtual board, makes a movement and checks if
+// It creates a virtual board, makes a movement on it and checks if
 // in that scenario the king is threatened or not.
 
 
@@ -881,12 +944,24 @@ function is_index_out_of_range(index){
 }
 
 function check(start_index, target_index, board, color){
-    if(is_index_out_of_range(start_index) || is_index_out_of_range(target_index))
+<<<<<<< Updated upstream
+    if(is_index_out_of_range(start_index) ||
+            is_index_out_of_range(target_index))
         return false;
-    var future_board = JSON.parse(JSON.stringify(board));
-    var future_white_unit_indices = JSON.parse(JSON.stringify(white_unit_indices));
-    var future_black_unit_indices = JSON.parse(JSON.stringify(black_unit_indices));
 
+    // deep copy from actual board
+    var future_board = JSON.parse(JSON.stringify(board));
+    var future_white_unit_indices = JSON.parse(
+                JSON.stringify(white_unit_indices));
+    var future_black_unit_indices =
+            JSON.parse(JSON.stringify(black_unit_indices));
+
+=======
+    var future_board = Object.assign([], board);
+    var future_white_unit_indices = Object.assign([], white_unit_indices)
+    var future_black_unit_indices = Object.assign([], black_unit_indices)
+    var tmp_turn = player_turn
+>>>>>>> Stashed changes
     var white_king_pos = w_king_pos
     var black_king_pos = b_king_pos
 
@@ -900,24 +975,28 @@ function check(start_index, target_index, board, color){
     if(color === "black")
         if(future_board[start_index].cl === "white"){
             if(future_board[start_index].id !== -1)
-                future_white_unit_indices[future_board[start_index].id] =  target_index
+                future_white_unit_indices[future_board[start_index].id]
+                        =  target_index
             if(future_board[target_index].id !== -1 &&
                     future_board[target_index].cl === "black")
-                future_black_unit_indices[future_board[target_index].id] =  -1
+                future_black_unit_indices[future_board[target_index].id]
+                        =  -1
         }
 
     if(color === "white")
         if(future_board[start_index].cl === "black"){
             if(future_board[start_index].id !== -1)
-                future_black_unit_indices[future_board[start_index].id] =  target_index
+                future_black_unit_indices[future_board[start_index].id] =
+                        target_index
             if(future_board[target_index].id !== -1 &&
                     future_board[target_index].cl === "white")
-                future_white_unit_indices[future_board[target_index].id] =  -1
+                future_white_unit_indices[future_board[target_index].id] =
+                        -1
         }
 
     future_board[start_index].index = future_board[target_index].index
     future_board[target_index]  = future_board[start_index]
-    future_board[start_index] =  empty_unit(-1)
+    future_board[start_index] =  empty_unit()
 
     var threatened = -1
 
@@ -941,13 +1020,12 @@ function check(start_index, target_index, board, color){
 
 }
 
-function get_unit_type(index){
-    return main.l_board[index].type
-}
+
 
 //! start_index, target_index are positions in board
 function is_valid_mv(start_index, target_index, board){
-    if(is_index_out_of_range(start_index) || is_index_out_of_range(target_index))
+    if(is_index_out_of_range(start_index) ||
+            is_index_out_of_range(target_index))
         return false;
     var start_unit = board[start_index]
     var tar_unit = board[target_index]
@@ -997,17 +1075,17 @@ function is_valid_mv(start_index, target_index, board){
 // when the game is finished, it updates players statistics
 function update_statistics(winner, loser){
 
-    if(winner === players[0]){
-        players[0].win_cnt++;
+    if(winner === players){
+        players.win_cnt++;
         players[1].lose_cnt++;
     }
     else if(winner === players[1]){
         players[1].win_cnt++;
-        players[0].lose_cnt++;
+        players.lose_cnt++;
     }
     else{
         players[1].draw_cnt++;
-        players[0].draw_cnt++;
+        players.draw_cnt++;
     }
 
     var jsonObject = JSON.parse(JSON.stringify(game))

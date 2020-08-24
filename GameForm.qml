@@ -1,19 +1,19 @@
-import QtQuick 2.12
-import QtQuick.Layouts 1.3
-import QtQuick.Controls 2.12
-import "graphic.js" as Graphic
-import "logic.js" as Logic
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Window 2.2
 import QtQml 2.12
+
+import QtQuick.Layouts 1.3
 import io.qt.examples.gameutils 1.0
 import QtQuick.Controls.Material 2.0
 
-Item{
-    id: game_item
-    GridLayout {
 
+import "graphic.js" as Graphic
+import "logic.js" as Logic
+
+Item{
+    id: game_form
+    GridLayout {
 
         id: maingrid
         width: parent.width
@@ -101,20 +101,32 @@ Item{
 
 
                     onReleased: {
-                        dropped_ind = bg_grid.indexAt(mouseX, mouseY)
+                        Global.dropped_ind = bg_grid.indexAt(mouseX, mouseY)
                         var dropped_cell = grid16.itemAt(mouseX, mouseY)
                         var move_state =
-                                Logic.try_move(l_board,
-                                               grabbed_ind, dropped_ind);
+                                Logic.try_move(Global.l_board, Global.black_unit_indices,
+                                               Global.white_unit_indices,
+                                               Global.grabbed_ind, Global.dropped_ind);
                         if(move_state !== 0){
                             dropped_cell.src = ""
                             Graphic.add_last_move()
                             // transition in graphical board
-                            Graphic.move(grabbed_ind, dropped_ind)
+                            Graphic.move(Global.grabbed_ind, Global.dropped_ind)
+                            if(move_state === -1){
+                                Graphic.add_last_move()
+                                var info = {"type": "normal",
+                                    "start": "white",
+                                    "turn": Global.game.turn,
+                                    "winner": Global.game.winner}
+                                Global.game.saveGame("1.json", Global.players,
+                                               Global.l_board, info)
+                                load.source = "GameResult.qml"
+                                main.width = load.width
+
+                                main.height = load.height
+                            }
                         }
-                        else if(move_state === -1){
-                            Graphic.add_last_move()
-                        }
+
 
 
 
@@ -122,18 +134,18 @@ Item{
 
                     onPressed: {
 
-                        dropped_ind = -1
-                        grabbed_ind = grid16.indexAt(mouseX, mouseY)
+                        Global.dropped_ind = -1
+                        Global.grabbed_ind = grid16.indexAt(mouseX, mouseY)
 
-                        if(l_board[grabbed_ind].ucolor === "white"){
+                        if(Global.l_board[Global.grabbed_ind].ucolor === "white"){
 
-                            white_unit_indices[l_board[grabbed_ind].id] =
-                                    grabbed_ind
+                            Global.white_unit_indices[Global.l_board[Global.grabbed_ind].id] =
+                                    Global.grabbed_ind
                         }
-                        if(l_board[grabbed_ind].ucolor === "black"){
+                        if(Global.l_board[Global.grabbed_ind].ucolor === "black"){
 
-                            black_unit_indices[l_board[grabbed_ind].id] =
-                                    grabbed_ind
+                            Global.black_unit_indices[Global.l_board[Global.grabbed_ind].id] =
+                                    Global.grabbed_ind
                         }
                     }
 
@@ -178,10 +190,9 @@ Item{
                     delegate:
                         Units{
                         index: 63
-                        src:
-                            Graphic.unit_src(l_board[number].index)
+                        src: Graphic.unit_src(Global.l_board[number].index)
                         rotation: 0
-                        is_white: l_board[number].ucolor === "white"
+                        is_white: Global.l_board[number].ucolor === "white"
                     }
 
                     move: Transition{
@@ -310,61 +321,14 @@ Item{
         visible: true
         dragMargin: main.width - game_area.width - 5
 
-        y: 0
-        Column {
+        MainMenu{
 
-            id: right_panel
-            x: 0
-            y: 5
-            width: drawer.width
-            height: 203
-            spacing: 1
-
-            Button {
-                width: drawer.width - 20
-                height: 60
-                id: button1
-                highlighted: false
-                text: qsTr("New")
-                anchors.horizontalCenter: parent.horizontalCenter
-
-                onClicked: {
-
-                    Logic.create_game()
-                    Add_playerForm.visible = true
-
-                }
-
-            }
-            Button {
-
-                width: drawer.width - 20
-                height: 60
-                id: button2
-                text: qsTr("Load")
-                anchors.horizontalCenter: parent.horizontalCenter
-                flat: false
-                highlighted: false
-            }
-
-            Button {
-                width: drawer.width - 20
-                height: 60
-                id: button3
-                text: qsTr("Save")
-                anchors.horizontalCenter: parent.horizontalCenter
-                highlighted: false
-            }
-
-            Button {
-                width: drawer.width - 20
-                height: 60
-                id: button4
-                text: qsTr("About")
-                anchors.horizontalCenter: parent.horizontalCenter
-                highlighted: false
-            }
         }
     }
 
+
+
+
 }
+
+

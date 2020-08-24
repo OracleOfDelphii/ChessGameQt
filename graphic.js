@@ -21,10 +21,10 @@ function cell_color(index){
     if(index === -1) return ""
     var color1 = "Black"
     var color2 = "Gray"
-    if(index === threatened_king){
+    if(index === Global.threatened_king){
         return "Orange"
     }
-    if(grabbed_ind === index || dropped_ind === index){
+    if(Global.grabbed_ind === index || Global.dropped_ind === index){
         return "purple"
     }
 
@@ -67,7 +67,8 @@ function add_last_move(){
 //! w_{name}.png for white units, b_{name}.png for black units
 //! empty units have no src
 function unit_src(index){
-    var str1 = l_board[index].ucolor === "white" ? "w_" : "b_"
+    if(l_board[index] === undefined) return ""
+    var str1 = l_board[index].cl === "white" ? "w_" : "b_"
     var str2 = l_board[index].unit_type
     if(str2 === "empty") return ""
     return "images/" + str1 + str2

@@ -17,7 +17,7 @@ class GameUtils: public QObject
 
 
 public:
-    explicit GameUtils(QObject *parent = nullptr);
+    explicit GameUtils(QObject* parent = nullptr);
 
     Q_INVOKABLE
     bool save_game(QString path,

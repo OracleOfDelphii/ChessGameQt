@@ -50,13 +50,13 @@ bool GameUtils::load_json(QString path, QJsonObject &obj){
     return true;
 
 }
+
 bool GameUtils::load_game(QString path){
     QJsonObject game;
     load_json(path, game);
     setGame(game);
 
     return true;
-
 }
 
 GameUtils::GameUtils(QObject *parent):
@@ -67,9 +67,6 @@ QJsonObject GameUtils::game(){
     return m_game;
 }
 
-
-
-#include<iostream>
 void GameUtils::setGame(QJsonObject& game){
     if(game == m_game){
         return;
@@ -92,9 +89,10 @@ bool GameUtils::new_game(){
 // If the file can't be retrieved, returns -1
 int GameUtils::add_to_all_players(QJsonObject player){
 
-    QString path = "./all_players.json";
+    QString all_players_path = "./all_players.json";
+
     QJsonObject all_players;
-    if(!load_json(path, all_players)){
+    if(!load_json(all_players_path, all_players)){
         return -1;
     }
 
@@ -106,28 +104,30 @@ int GameUtils::add_to_all_players(QJsonObject player){
 
     if(!all_players.contains(player.value("name").toString())){
         all_players.insert(name, stats);
-        save_json(path, all_players);
+        save_json(all_players_path, all_players);
         return 1;
 
     }
-
-
 
     return 0;
 }
 
 bool GameUtils::update_high_score(QJsonObject game)
 {
+    QString ranking_path = "./ranking.json";
 
     QJsonObject player1 = game.value("player1").toObject();
     QJsonObject player2 = game.value("player2").toObject();
+
     QJsonObject ranking;
-    if(!load_json("./ranking.json", ranking)){
+
+    if(!load_json(ranking_path, ranking)){
         return false;
     }
 
     ranking.remove(player1.value("name").toString());
     ranking.remove(player2.value("name").toString());
+
 
     QJsonObject stat_p1;
     QJsonObject stat_p2;
@@ -149,7 +149,7 @@ bool GameUtils::update_high_score(QJsonObject game)
     ranking.insert(player1.value("name").toString(), stat_p1);
     ranking.insert(player2.value("name").toString(), stat_p2);
 
-    save_json("./ranking.json", ranking);
+    save_json(ranking_path, ranking);
 
     return true;
 };

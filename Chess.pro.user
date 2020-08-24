@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.12.4, 2020-08-20T23:57:58. -->
+<<<<<<< Updated upstream
+<!-- Written by QtCreator 4.12.4, 2020-08-25T01:49:52. -->
+=======
+<!-- Written by QtCreator 4.10.2, 2020-05-26T19:55:45. -->
+>>>>>>> Stashed changes
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -139,7 +143,7 @@
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">QtProjectManager.QMakeBuildStep</value>
       <value type="QString" key="QtProjectManager.QMakeBuildStep.QMakeArguments"></value>
-      <value type="bool" key="QtProjectManager.QMakeBuildStep.QMakeForced">true</value>
+      <value type="bool" key="QtProjectManager.QMakeBuildStep.QMakeForced">false</value>
       <valuelist type="QVariantList" key="QtProjectManager.QMakeBuildStep.SelectedAbis"/>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.1">
@@ -190,7 +194,7 @@
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">QtProjectManager.QMakeBuildStep</value>
       <value type="QString" key="QtProjectManager.QMakeBuildStep.QMakeArguments"></value>
-      <value type="bool" key="QtProjectManager.QMakeBuildStep.QMakeForced">true</value>
+      <value type="bool" key="QtProjectManager.QMakeBuildStep.QMakeForced">false</value>
       <valuelist type="QVariantList" key="QtProjectManager.QMakeBuildStep.SelectedAbis"/>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.1">
@@ -308,7 +312,7 @@
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/ali/projects/chess/Chess.pro</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/home/ali/projects/chess/Chess.pro</value>
-    <value type="QString" key="RunConfiguration.Arguments">-style material</value>
+    <value type="QString" key="RunConfiguration.Arguments"></value>
     <value type="bool" key="RunConfiguration.Arguments.multi">false</value>
     <value type="QString" key="RunConfiguration.OverrideDebuggerStartup"></value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
@@ -361,12 +365,12 @@
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.AndroidPackageInstallationStep</value>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.3">
-      <value type="QString" key="BuildTargetSdk">android-30</value>
+      <value type="QString" key="BuildTargetSdk">android-29</value>
       <value type="QString" key="KeystoreLocation"></value>
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">QmakeProjectManager.AndroidBuildApkStep</value>
       <value type="bool" key="UseMinistro">false</value>
-      <value type="bool" key="VerboseOutput">false</value>
+      <value type="bool" key="VerboseOutput">true</value>
      </valuemap>
      <value type="int" key="ProjectExplorer.BuildStepList.StepsCount">4</value>
      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Build</value>
@@ -397,7 +401,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4BuildConfiguration</value>
     <value type="int" key="Qt4ProjectManager.Qt4BuildConfiguration.BuildConfiguration">2</value>
     <value type="int" key="QtQuickCompiler">2</value>
-    <value type="int" key="SeparateDebugInfo">2</value>
+    <value type="int" key="SeparateDebugInfo">0</value>
    </valuemap>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.1">
     <value type="bool">true</value>
@@ -410,7 +414,9 @@
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">QtProjectManager.QMakeBuildStep</value>
       <value type="QString" key="QtProjectManager.QMakeBuildStep.QMakeArguments"></value>
       <value type="bool" key="QtProjectManager.QMakeBuildStep.QMakeForced">false</value>
-      <valuelist type="QVariantList" key="QtProjectManager.QMakeBuildStep.SelectedAbis"/>
+      <valuelist type="QVariantList" key="QtProjectManager.QMakeBuildStep.SelectedAbis">
+       <value type="QString">armeabi-v7a</value>
+      </valuelist>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.1">
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
@@ -616,7 +622,6 @@
     <valuelist type="QVariantList" key="Android.PreStartShellCmdListKey"/>
     <value type="int" key="PE.EnvironmentAspect.Base">0</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Chess</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.AndroidRunConfiguration:/home/ali/projects/chess/Chess.pro</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/home/ali/projects/chess/Chess.pro</value>
     <value type="QString" key="RunConfiguration.Arguments">-style material</value>
