@@ -36,16 +36,16 @@ Rectangle{
 
             onClicked: {
                 console.log(JSON.stringify(game))
-                game.resetGame()
-                grabbed_ind = -1
-                dropped_ind = -1
-                threatened_king = -1
-                b_king_pos = 4
-                w_king_pos = 60
-                player_turn = 0
-                is_dropped = false
-                black_last_5_moves.clear()
-                white_last_5_moves.clear()
+                Global.game.resetGame()
+                Global.grabbed_ind = -1
+                Global.dropped_ind = -1
+                Global.threatened_king = -1
+                Global.b_king_pos = 4
+                Global.w_king_pos = 60
+                Global.player_turn = 0
+                Global.is_dropped = false
+                Global.black_last_5_moves.clear()
+                Global.white_last_5_moves.clear()
 
                 boardModel.clear()
                 bgModel.clear()
@@ -107,7 +107,13 @@ Rectangle{
             highlighted: true
 
             onClicked: {
+                var info = {"type": Global.game.type,
+                    "start": Global.game.start,
+                    "turn": Global.game.turn,
+                    "winner": Global.game.winner}
 
+                Global.game.saveGame(
+                            "newGame.json", players, board, info)
             }
         }
 
@@ -119,6 +125,9 @@ Rectangle{
             text: qsTr("About")
             anchors.horizontalCenter: parent.horizontalCenter
             highlighted: false
+            onClicked: {
+                load.source = "About.qml"
+            }
 
         }
     }

@@ -318,7 +318,6 @@ Item{
         width: main.width
         height:main.height
         edge: Qt.RightEdge
-        visible: true
         dragMargin: main.width - game_area.width - 5
 
         MainMenu{

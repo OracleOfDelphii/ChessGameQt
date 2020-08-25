@@ -214,7 +214,6 @@ class Game{
         this.board = l_board
 
 
-
         players[0].check = false
         players[1].move_history = []
 

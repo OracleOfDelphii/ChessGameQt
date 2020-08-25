@@ -3,6 +3,7 @@
         <file>board.qml</file>
         <file>graphic.js</file>
         <file>images/b_bishop.png</file>
+        <file>images/about.png</file>
         <file>images/b_horse.png</file>
         <file>images/b_king.png</file>
         <file>images/b_queen.png</file>
@@ -25,5 +26,6 @@
         <file>images/colortable.png</file>
         <file>qmldir</file>
         <file>GlobalVariables.qml</file>
+        <file>About.qml</file>
     </qresource>
 </RCC>

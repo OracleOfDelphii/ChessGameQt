@@ -7,8 +7,8 @@ import QtQuick.Controls 2.1
 
 Pane{
     id: pane
-    width: 360
-    height: 340
+    width: screen.width
+    height: screen.height
     background: Rectangle {
         id: g_result
          anchors.fill: parent
@@ -42,9 +42,9 @@ Pane{
 
             text: qsTr("main menu")
             highlighted: true
-            anchors.verticalCenterOffset: -50
+            anchors.verticalCenterOffset: 120
             anchors.horizontalCenter: parent.horizontalCenter
-            anchors.verticalCenter: parent.bottom
+            anchors.verticalCenter: parent.verticalCenter
 
             onClicked: {
                 load.source = "MainMenu.qml"
@@ -55,7 +55,6 @@ Pane{
 
 
     ParticleSystem { id: particles
-        visible:  true
     }
 
     ImageParticle {
@@ -102,8 +101,4 @@ Pane{
 
 
 
-/*##^##
-Designer {
-    D{i:2;anchors_x:1;anchors_y:89}
-}
-##^##*/
+
