@@ -24,6 +24,7 @@ RESOURCES += \
 QML_IMPORT_PATH =
 ANDROID_PACKAGE_SOURCE_DIR = "$$PWD/android"
 
+ANDROID_ABIS = armeabi-v7a arm64-v8a
 
 
 # Additional import path used to resolve QML modules just for Qt Quick Designer
@@ -38,9 +39,14 @@ DISTFILES += \
     android/AndroidManifest.xml \
     android/build.gradle \
     android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradle/wrapper/gradle-wrapper.properties \
     android/gradle/wrapper/gradle-wrapper.properties \
     android/gradlew \
+    android/gradlew \
     android/gradlew.bat \
+    android/gradlew.bat \
+    android/res/values/libs.xml \
     android/res/values/libs.xml \ \
     src/qml/About.qml \
     src/qml/AddPlayer.qml \
@@ -70,3 +76,5 @@ src/cpp/gameutils.h
 CONFIG += qmltypes
 QML_IMPORT_NAME = gameutils
 QML_IMPORT_MAJOR_VERSION = 1
+
+ANDROID_ABIS = armeabi-v7a
