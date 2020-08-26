@@ -1,4 +1,4 @@
-#include "gameutils.h"
+#include "src/cpp/gameutils.h"
 #include<QJsonObject>
 #include<QJsonDocument>
 #include<QJsonValue>
@@ -13,11 +13,12 @@ bool GameUtils::save_game(QString path,
         qWarning("could'nt write file");
         return false;
     }
+
+
     QJsonObject game;
     game.insert("players", players);
     game.insert("board", board);
     game.insert("info", info);
-    game.insert("dir", path);
     saveFile.write(QJsonDocument(game).toJson());
     return true;
 }
@@ -114,10 +115,11 @@ int GameUtils::add_to_all_players(QJsonObject player){
 
 bool GameUtils::update_high_score(QJsonObject game)
 {
+
     QString ranking_path = "./ranking.json";
 
-    QJsonObject player1 = game.value("player1").toObject();
-    QJsonObject player2 = game.value("player2").toObject();
+    QJsonObject player1 = game.value("players").toArray().at(0).toObject();
+    QJsonObject player2 = game.value("players").toArray().at(1).toObject();
 
     QJsonObject ranking;
 
@@ -148,7 +150,6 @@ bool GameUtils::update_high_score(QJsonObject game)
 
     ranking.insert(player1.value("name").toString(), stat_p1);
     ranking.insert(player2.value("name").toString(), stat_p2);
-
     save_json(ranking_path, ranking);
 
     return true;

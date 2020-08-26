@@ -1,7 +1,12 @@
 pragma Singleton
 import QtQuick 2.0
+import gameutils 1.0
+
 
 QtObject {
+
+    property GameUtils gameutils : GameUtils{}
+
     property int dropped_ind: -1
     property int grabbed_ind: -1
 
@@ -26,5 +31,16 @@ QtObject {
     property int b_king_pos : 4
     property int w_king_pos : 60
     property int threatened_king : -1
+    property int is_threatened : -1
+
+
+    property ListModel bgModel : ListModel{}
+    property ListModel boardModel : ListModel{}
+    property ListModel black_last_5_moves : ListModel{}
+    property ListModel white_last_5_moves : ListModel {}
+
+
 
 }
+
+

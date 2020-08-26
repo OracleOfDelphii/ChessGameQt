@@ -14,15 +14,14 @@ QMAKE_LFLAGS += -lstdc++
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        gameutils.cpp \
-        main.cpp
+        src/cpp/gameutils.cpp \
+        src/cpp/main.cpp
 
 RESOURCES += \
     chess.qrc
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
-
 ANDROID_PACKAGE_SOURCE_DIR = "$$PWD/android"
 
 
@@ -42,18 +41,32 @@ DISTFILES += \
     android/gradle/wrapper/gradle-wrapper.properties \
     android/gradlew \
     android/gradlew.bat \
-    android/res/values/libs.xml \
-    game_form.qml \
-    graphic.js \
-    board.qml \
-    Units.qml \
-    logic.js
+    android/res/values/libs.xml \ \
+    src/qml/About.qml \
+    src/qml/AddPlayer.qml \
+    src/qml/GameForm.qml \
+    src/qml/GameResult.qml \
+    src/qml/GlobalVariables.qml \
+    src/qml/MainMenu.qml \
+    src/qml/Ranking.qml \
+    src/qml/RankingForm.ui.qml \
+    src/qml/chess.qml \
+    src/qml/qmldir
+
+
+DISTFILES += \
+    src/js/graphic.js \
+    src/qml/board.qml \
+    src/qml/Units.qml \
+    src/js/logic.js
+
+
+
+INCLUDEPATH += src/cpp
 
 HEADERS += \
-    gameutils.h
-
-
+src/cpp/gameutils.h
 
 CONFIG += qmltypes
-QML_IMPORT_NAME = io.qt.examples.gameutils
+QML_IMPORT_NAME = gameutils
 QML_IMPORT_MAJOR_VERSION = 1

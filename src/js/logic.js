@@ -1,7 +1,7 @@
 // TO-DO check for Draw
 
 .import "graphic.js" as Graphic
-
+.import Global 1.0 as Global
 
 
 class Player {
@@ -57,20 +57,21 @@ function try_move(board, black_unit_indices,
 
     var target_unit = board[target_index]
     var start_unit = board[start_index]
-    var cl = players[player_turn].cl
-    var op_cl = (cl === "white" ? "black" : "white")
 
+    var cl = Global.Global.players[Global.Global.player_turn].cl
+    var op_cl = (cl === "white" ? "black" : "white")
     if(start_unit.cl === cl){
         var valid_move = is_valid_mv(start_index, target_index, board)
-        var threated = check(start_index, target_index, board, cl)
-        if(valid_move && (threated === -1)){
-            threatened_king = -1
-            if(start_index === b_king_pos){
-                b_king_pos = target_index
+        var is_threatened = check(start_index, target_index, board, cl)
+
+        if(valid_move && (is_threatened === -1)){
+            Global.Global.threatened_king = -1
+            if(start_index === Global.Global.b_king_pos){
+                Global.Global.b_king_pos = target_index
             }
 
-            if(start_index === w_king_pos){
-                w_king_pos = target_index
+            if(start_index === Global.Global.w_king_pos){
+                Global.Global.w_king_pos = target_index
             }
 
             if(start_unit.cl === "white"){
@@ -89,48 +90,81 @@ function try_move(board, black_unit_indices,
             // move in logical board
 
             var threatened = check(start_index, target_index, board, op_cl)
+            Global.Global.is_threatened = threatened
 
             board[start_index].index = target_index
             board[target_index] = board[start_index]
             board[start_index] = empty_unit()
 
 
-            players[player_turn].add_move(move_str(start_index, target_index))
 
-            if(threated === -1){
-                if(player_turn == 0){
-                    player_turn = 1
-                }
-                else{
-                    player_turn = 0
-                }
+
+
+            Global.Global.players[Global.Global.player_turn].add_move
+                    (move_str(start_index, target_index))
+
+            if(Global.Global.player_turn === 0){
+                Global.Global.player_turn = 1
+            }
+            else{
+                Global.Global.player_turn = 0
             }
 
+
+
+
+            Global.Global.game.set("normal", board,
+                                   Global.Global.player_turn, Global.Global.players[0],
+                                   Global.Global.players[1], "", Global.Global.starter)
+
             if(threatened !== -1){
-                threatened_king = threatened
+                Global.Global.threatened_king = threatened
                 var winner = ""
                 var loser = ""
-                if(is_mate(target_index, board, black_unit_indices,
-                           white_unit_indices)){
-                    game.winner = players[player_turn]
-                    winner = game.winner
-                    loser = player_turn === 0 ? players[1] : players;
+                if(te(target_index, board, black_unit_indices,
+                      white_unit_indices)){
+                    Global.Global.game.set("normal", board,
+                                           Global.Global.player_turn,
+                                           Global.Global.players[0],
+                                           Global.Global.players[1],
+                                           Global.Global.players[Global.Global.player_turn],
+                                           Global.Global.starter)
+
+                    winner = Global.Global.game.winner
+                    loser = Global.Global.player_turn === 0 ?
+                                Global.Global.players[1] :
+                                Global.Global.players[0];
+
+
+                    Global.Global.winner = winner.name
                     update_statistics(winner, loser)
                     var info = {"type": "normal",
                         "start": "white",
-                        "turn": game.turn,
-                        "winner": game.winner}
+                        "turn": Global.Global.game.turn,
+                        "winner": Global.Global.game.winner,
+                        "threatened_king": Global.Global.threatened_king,
+                        "is_threatened": Global.Global.threatened_king,
+                        "b_king_pos": Global.Global.b_king_pos,
+                        "w_king_pos": Global.Global.w_king_pos,
+                        "black_unit_indices": Global.black_unit_indices,
+                        "white_unit_indices": Global.white_unit_indices
+                    }
 
-                    gameutil.save_game("./newGame.json",
-                                       players, l_board, info)
+
+
+
+                    Global.Global.gameutils.save_game("./newGame.json",
+                                                      Global.Global.players,
+                                                      Global.Global.l_board, info)
 
                     return -1;
                 }
             }
             else if(is_draw(board)){
                 update_statistics(winner, loser)
-                gameutil.save_game("./newGame.json",
-                                   players, l_board, info)
+                Global.Global.gameutils.save_game("./newGame.json",
+                                                  Global.Global.players,
+                                                  Global.Global.l_board, info)
 
                 return -1;
             }
@@ -158,8 +192,8 @@ function move_str(start_index, target_index){
 }
 
 class Game{
-    constructor(type = "normal", board = [], turn = 0, player1, player2, winner = "",
-                start = "white") {
+    constructor(type = "normal", board = [], turn = 0,
+                player1, player2, winner = "", start = "white") {
         this.type = type
         this.board = board
         this.turn = turn
@@ -169,75 +203,111 @@ class Game{
         this.start = start
     }
 
+    set(type, board, turn = 0, player1, player2, winner,
+        start){
+        this.type = type
+        this.board = board
+        this.turn = turn
+        this.player1 = player1
+        this.player2 = player2
+        this.winner = winner
+    }
+
+
+
 
     loadGame(savefile_path)
     {
-        this.initNewGame("23230", "2323")
-        gameutil.load_game(qsTr(savefile_path))
-        var game = gameutil.game
-        this.board = game["board"]
-        players[0].set_player(game["player1"])
 
-        players[1].set_player(game["player2"])
-        this.player1 = players[0]
-        this.player2 = players[1]
+        gameutils.load_game(qsTr(savefile_path))
+        this.board = gameutils.game["board"]
+        this.player1 = gameutils.game["players"][0]
+        this.player2 = gameutils.game["players"][1]
+        this.winner =  gameutils.game["info"]["winner"]
+        this.type = gameutils.game["info"]["type"]
+        this.turn = gameutils.game["info"]["turn"]
+        this.start = gameutils.game["info"]["start"]
+        Global.Global.l_board = this.board
+        Global.Global.players[0].set_player(this.player1)
+        Global.Global.players[1].set_player(this.player2)
+        Global.Global.player_turn = this.turn
+        Global.Global.winner = this.winner.name
+        Global.Global.threatened_king = gameutils.game["info"]["threatened_king"]
+        Global.Global.is_threatened = gameutils.game["info"]["is_threatened"]
+        Global.Global.black_unit_indices =
+        gameutils.game["info"]["black_unit_indices"]
+        Global.Global.white_unit_indices =
+        gameutils.game["info"]["white_unit_indices"]
+        Global.Global.b_king_pos =
+        gameutils.game["info"]["b_king_pos"]
+        Global.Global.w_king_pos =
+        gameutils.game["info"]["w_king_pos"]
 
-        this.winner = JSON.parse(JSON.stringify(game["winner"]))
-        this.type = JSON.parse(JSON.stringify(game["type"]))
-        this.turn = JSON.parse(JSON.stringify(game["turn"]))
-
-        this.start = JSON.parse(JSON.stringify(game["start"]))
-
+        Global.Global.game = this
     }
 
     set_player(json_game){
-        this.win_cnt = JSON.parse(json_player["win_cnt"])
-        this.lose_cnt = JSON.parse(json_player["lose_cnt"])
-        this.draw_cnt = JSON.parse(json_player["draw_cnt"])
+        this.win_cnt = JSON.parse(JSON.stringify(Jjson_player["win_cnt"]))
+        this.lose_cnt = JSON.parse(JSON.stringify(json_player["lose_cnt"]))
+        this.draw_cnt = JSON.parse(JSON.stringify(json_player["draw_cnt"]))
         this.name = JSON.parse(JSON.stringify(json_player["name"]))
         this.cl = JSON.parse(JSON.stringify(json_player["cl"]))
         this.check = JSON.parse(JSON.stringify(json_player["check"]))
-        this.move_history = JSON.parse(json_player["move_history"])
-
+        this.move_history = JSON.parse(JSON.stringify(json_player["move_history"]))
     }
 
 
     saveGame(to_destination, players, board, info){
-        gameutil.save_game(to_destination, players, board, info)
+        gameutils.save_game(to_destination, players, board, info)
     }
 
 
     resetGame(){
+        Global.Global.l_board = []
+        Global.Global.black_unit_indices = []
+        Global.Global.white_unit_indices = []
 
-        create_table(l_board, black_unit_indices, white_unit_indices)
+        create_table(Global.Global.l_board,
+                     Global.Global.black_unit_indices,
+                     Global.Global.white_unit_indices,
+                     Global.Global.b_king_pos,
+                     Global.Global.w_king_pos)
 
-        this.board = l_board
+        this.board = Global.Global.l_board
 
 
-        players[0].check = false
-        players[1].move_history = []
+        Global.Global.players[0].check = false
+        Global.Global.players[0].move_history = []
 
-        players[1].check = false
-        players[1].move_history = []
+        Global.Global.players[1].check = false
+        Global.Global.players[1].move_history = []
 
-        gameutil.game = game
-
+        this.player1 = Global.Global.players[0]
+        this.player2 = Global.Global.players[1]
+        var type = Global.Global.game.type
+        gameutils.game = this
     }
     newPlayer(){
 
     }
 
     initNewGame(p1_name, p2_name){
-        create_table(l_board, black_unit_indices, white_unit_indices)
+        create_table(Global.Global.l_board,
+                     Global.Global.black_unit_indices,
+                     Global.Global.white_unit_indices,
+                     Global.Global.b_king_pos,
+                     Global.Global.w_king_pos)
+        Global.Global.players = create_player(p1_name, p2_name);
 
-        players = create_player(p1_name, p2_name);
-        gameutil.add_to_all_players(JSON.parse(JSON.stringify(players)))
-        gameutil.add_to_all_players(JSON.parse(JSON.stringify(players[1])))
-        var game = new Game("normal", l_board,
-                            0, players, players[1], "")
+        gameutils.add_to_all_players(JSON.parse(JSON.stringify(players[0])))
+        gameutils.add_to_all_players(JSON.parse(JSON.stringify(players[1])))
 
-        gameutil.game = JSON.parse(JSON.stringify(game))
-        gameutil.new_game()
+        var game = new Game("normal", Global.Global.l_board,
+                            0, Global.Global.players[0],
+                            Global.Global.players[1], "")
+
+        gameutils.game = JSON.parse(JSON.stringify(game))
+        gameutils.new_game()
 
     }
 }
@@ -249,19 +319,22 @@ function create_player(p1_name, p2_name){
     var players = []
     var p1 = new Player(p1_name, "white")
     var p2 = new Player(p2_name, "black")
+
     players.push(p1)
     players.push(p2)
+
     return players
 }
 
 
 
-
+// It returns an instance of class game with default settings.
 function create_game(p1_name, p2_name){
     var game = new Game()
-    players = create_player(p1_name, p2_name)
-    create_table(l_board, black_unit_indices,
-                 white_unit_indices)
+    Global.Global.players = create_player(p1_name, p2_name)
+
+    create_table(Global.Global.l_board, Global.Global.black_unit_indices,
+                 Global.Global.white_unit_indices)
     return game
 }
 
@@ -304,7 +377,7 @@ with both bishops on squares of the same color
     var bg_cl_w_bishop;
     var bg_cl_b_bishop;
 
-    black_unit_indices.forEach(function(uindex){
+    Global.Global.black_unit_indices.forEach(function(uindex){
         if(uindex !== -1){
             alive_black += (board[uindex].unit_type)
 
@@ -318,7 +391,7 @@ with both bishops on squares of the same color
             }
         }
     })
-    white_unit_indices.forEach(function(uindex){
+    Global.Global.white_unit_indices.forEach(function(uindex){
         if(uindex !== -1){
             alive_white += (board[uindex].unit_type)
 
@@ -383,7 +456,7 @@ function is_fifty_move(board){
 }
 
 
-function is_mate(start_index, board, b_unit_indices, w_unit_indices){
+function te(start_index, board, b_unit_indices, w_unit_indices){
     var start_unit = board[start_index]
     var tar_king_index;
     var attacking_unit_indices;
@@ -392,14 +465,14 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
     var defend_unit_color;
 
     if(attack_unit_color === "black"){
-        tar_king_index = w_king_pos;
+        tar_king_index = Global.Global.w_king_pos;
         defend_unit_color = "white";
         attacking_unit_indices = b_unit_indices;
         defending_unit_indices = w_unit_indices;
     }
     else{
         defend_unit_color = "black";
-        tar_king_index = b_king_pos;
+        tar_king_index = Global.Global.b_king_pos;
         attacking_unit_indices = w_unit_indices;
         defending_unit_indices = b_unit_indices;
     }
@@ -501,7 +574,8 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
                     if(potential_rescuer.unit_type === "bishop" ||
                             potential_rescuer.unit_type === "queen"){
                         if(is_valid_mv(uindex, j, board)){
-                            if(check(uindex, j, board, defend_unit_color) === -1){
+                            if(check(uindex, j, board, defend_unit_color)
+                                    === -1){
                                 can_rescue = true;
                                 return;
                             }
@@ -570,6 +644,9 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
             if(can_rescue) return false;
         }
     }
+
+    // now vertical
+
 
     return true;
 }
@@ -737,7 +814,7 @@ function is_valid_diagonal(start_index, target_index, board){
         if(tar_unit.unit_type === "empty"){
             return false
         }
-        console.log(tar_unit.unit_type)
+
 
         if(start_unit.cl === "white"){
             if(start_unit !== up_unit){
@@ -951,23 +1028,20 @@ function check(start_index, target_index, board, color){
     // deep copy from actual board
     var future_board = JSON.parse(JSON.stringify(board));
     var future_white_unit_indices = JSON.parse(
-                JSON.stringify(white_unit_indices));
+                JSON.stringify(Global.Global.white_unit_indices));
     var future_black_unit_indices =
-            JSON.parse(JSON.stringify(black_unit_indices));
+            JSON.parse(JSON.stringify(Global.Global.black_unit_indices));
 
 
-    var future_board = Object.assign([], board);
-    var future_white_unit_indices = Object.assign([], white_unit_indices)
-    var future_black_unit_indices = Object.assign([], black_unit_indices)
-    var tmp_turn = player_turn
+    var tmp_turn = Global.Global.player_turn
 
-    var white_king_pos = w_king_pos
-    var black_king_pos = b_king_pos
+    var white_king_pos = Global.Global.w_king_pos
+    var black_king_pos = Global.Global.b_king_pos
 
-    if(start_index === w_king_pos){
+    if(start_index === Global.Global.w_king_pos){
         white_king_pos = target_index
     }
-    if(start_index === b_king_pos){
+    if(start_index === Global.Global.b_king_pos){
         black_king_pos = target_index
     }
 
@@ -1002,7 +1076,7 @@ function check(start_index, target_index, board, color){
     if(color === "white"){
         future_black_unit_indices.forEach(function(uindex) {
             if(is_valid_mv(uindex, white_king_pos, future_board)){
-                threatened = w_king_pos
+                threatened = Global.Global.w_king_pos
 
             }
         })
@@ -1011,7 +1085,7 @@ function check(start_index, target_index, board, color){
     if(color === "black"){
         future_white_unit_indices.forEach(function(uindex) {
             if(is_valid_mv(uindex, black_king_pos, future_board)){
-                threatened = b_king_pos
+                threatened = Global.Global.b_king_pos
             }
         })
     }
@@ -1028,7 +1102,7 @@ function is_valid_mv(start_index, target_index, board){
         return false;
     var start_unit = board[start_index]
     var tar_unit = board[target_index]
-    var cl = player_turn == 0 ? "white" : "black"
+    var cl = Global.Global.player_turn === 0 ? "white" : "black"
     var op_king = ""
 
     if(start_unit === undefined){
@@ -1074,21 +1148,23 @@ function is_valid_mv(start_index, target_index, board){
 // when the game is finished, it updates players statistics
 function update_statistics(winner, loser){
 
-    if(winner === players){
-        players.win_cnt++;
-        players[1].lose_cnt++;
+    if(winner === Global.Global.players[0]){
+        Global.Global.players[0].win_cnt++;
+        Global.Global.players[1].lose_cnt++;
     }
-    else if(winner === players[1]){
-        players[1].win_cnt++;
-        players.lose_cnt++;
+    else if(winner === Global.Global.players[1]){
+        Global.Global.players[1].win_cnt++;
+        Global.Global.players[0].lose_cnt++;
     }
     else{
-        players[1].draw_cnt++;
-        players.draw_cnt++;
+        Global.Global.players[1].draw_cnt++;
+        Global.Global.players[0].draw_cnt++;
     }
 
     var jsonObject = JSON.parse(JSON.stringify(game))
 
-    gameutil.update_high_score(jsonObject)
+
+
+    gameutils.update_high_score(jsonObject)
 
 }

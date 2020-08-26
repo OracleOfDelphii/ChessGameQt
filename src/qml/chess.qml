@@ -1,6 +1,6 @@
 import QtQuick 2.6
 import QtQuick.Window 2.2
-import "graphic.js" as Graphic
+import "../js/graphic.js" as Graphic
 Window {
     id : main
     visible: true

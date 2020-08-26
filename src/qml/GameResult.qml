@@ -2,13 +2,13 @@ import QtQuick 2.0
 import QtQuick.Particles 2.0
 import QtQuick.Controls 2.1
 
-// This is an edited version of QT particle example.
+// Animation is an edited version of QT particle example.
 
 
 Pane{
     id: pane
-    width: screen.width
-    height: screen.height
+    width: main.width
+    height: main.height
     background: Rectangle {
         id: g_result
          anchors.fill: parent
@@ -16,7 +16,7 @@ Pane{
         Text {
             id: winner_name
             color: "#ffffff"
-            text: game.winner.name
+            text: qsTr(Global.winner)
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
             verticalAlignment: Text.AlignVCenter
@@ -64,9 +64,9 @@ Pane{
         alpha: 0
 
 
-        source: "images/w_king.png"
-        colorTable: "images/colortable.png"
-        sizeTable: "images/b_soldier.png"
+        source: "../../images/w_king.png"
+        colorTable: "../../images/colortable.png"
+        sizeTable: "../../images/b_soldier.png"
 
     }
 

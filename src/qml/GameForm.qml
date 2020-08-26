@@ -2,30 +2,31 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Window 2.2
 import QtQml 2.12
-
+import Global 1.0
 import QtQuick.Layouts 1.3
-import io.qt.examples.gameutils 1.0
+import gameutils 1.0
 import QtQuick.Controls.Material 2.0
 
 
-import "graphic.js" as Graphic
-import "logic.js" as Logic
+import "../js/graphic.js" as Graphic
+import "../js/logic.js" as Logic
 
 Item{
     id: game_form
     GridLayout {
 
         id: maingrid
-        width: parent.width
-        height: parent.height
 
+        height: 8 * Math.min(main.width/4,48)
+
+        width: 8 * Math.min(main.width/4,48)
         ColumnLayout{
             spacing: 4.7
             Layout.row: 0
             Layout.column:  0
             Rectangle{
                 y: 0
-                width: 384
+                width: 8 * Math.min(main.width/4,48)
                 height: 30
                 visible:  true
                 Layout.fillHeight: false
@@ -41,16 +42,16 @@ Item{
                     id: top_bar
                     x: 8
                     y: 5
-                    width: 368
+                    width: 8 * Math.min(main.width / 32, 48)
                     height: 30
-                    contentHeight: 0
+
                     orientation: ListView.Horizontal
                     visible: true
-                    spacing: 8
+                    spacing: 7
                     delegate: Flow {
                         Image {
-                            width: 16
-                            height: 16
+                            width:  Math.min(main.width /12, 16)
+                            height: Math.min(main.width /12, 16)
                             fillMode: Image.PreserveAspectFit
                             source: src
                         }
@@ -58,20 +59,20 @@ Item{
                         Text {
                             color: ucolor
                             text: mv
-                            font.pixelSize: 15
+                            font.pointSize: 12
                             font.bold: true
                             padding: 2
                         }
                         spacing: 4
                     }
-                    model: black_last_5_moves
+                    model: Global.black_last_5_moves
                     interactive: false
                 }
 
                 Flow {
                     id: flow_top
                     x: 0
-                    width: 384
+                    width: 8 * Math.min(main.width/4,48)
                     height: 30
                     enabled: true
                     spacing: 3
@@ -85,14 +86,14 @@ Item{
             Item{
                 id: game_area
                 y: 30
-                height: 384
-                width: 384
+                height: 8 * Math.min(main.width/4,48)
+                width: 8 * Math.min(main.width/4,48)
                 MouseArea{
                     rotation: 0
                     id: marea
                     z:1
-                    width: 8 * 48
-                    height: 8 * 48
+                    width: 8 * Math.min(main.width/4,48)
+                    height: 8 * Math.min(main.width/4,48)
                     hoverEnabled: true
 
                     // for reseting previous visited cell color to normal
@@ -111,6 +112,7 @@ Item{
                             dropped_cell.src = ""
                             Graphic.add_last_move()
                             // transition in graphical board
+
                             Graphic.move(Global.grabbed_ind, Global.dropped_ind)
                             if(move_state === -1){
                                 Graphic.add_last_move()
@@ -119,11 +121,8 @@ Item{
                                     "turn": Global.game.turn,
                                     "winner": Global.game.winner}
                                 Global.game.saveGame("1.json", Global.players,
-                                               Global.l_board, info)
+                                                     Global.l_board, info)
                                 load.source = "GameResult.qml"
-                                main.width = load.width
-
-                                main.height = load.height
                             }
                         }
 
@@ -155,44 +154,44 @@ Item{
                     rotation: 0
 
                     id: bg_grid
-                    cellWidth:  48
-                    cellHeight: 48
+                    cellWidth: Math.min(main.width/8,48)
+                    cellHeight: Math.min(main.width/8,48)
                     interactive:  false
                     model: bgModel
-                    width: 8 * 48
-                    height: 8 * 48
+                    width: 8 * this.cellWidth
+                    height: 8 * this.cellHeight
                     delegate:
                         Item{
                         id: cell_bg
-                        width: 48
-                        height: 48
+                        width: Math.min(main.width/4,48)
+                        height: Math.min(main.width/4,48)
                         property string cl : Graphic.cell_color(number)
 
                         Rectangle{
                             z: 0
-                            width: 48
-                            height: 48
+                            width: Math.min(main.width/4,48)
+                            height:Math.min(main.width/4,48)
                             color: cl
                         }
                     }
                 }
 
                 GridView{
-                    width: 8 * 48
-                    height: 8 * 48
+                    width: 8 * this.cellWidth
+                    height: 8 * this.cellHeight
                     interactive: false
                     id: grid16;
-                    cellWidth: 48
-                    cellHeight: 48
+                    cellWidth: Math.min(main.width/8,48)
+                    cellHeight: Math.min(main.width/8,48)
                     rotation: 0
-                    model: boardModel
+                    model: Global.boardModel
 
                     delegate:
                         Units{
                         index: 63
-                        src: Graphic.unit_src(Global.l_board[number].index)
+                        src: Graphic.unit_src(unit_at_i)
                         rotation: 0
-                        is_white: Global.l_board[number].ucolor === "white"
+                        is_white: unit_at_i.cl === "white"
                     }
 
                     move: Transition{
@@ -202,39 +201,10 @@ Item{
                     }
                 }
 
-                ListModel{
-                    id: boardModel
-                    Component.onCompleted: {
-                        for(var i = 0; i <= 63; i++){
-                            append({"number": i})
-                        }
-                    }
-                }
-
-                ListModel {
-                    id: bgModel
-                    Component.onCompleted: {
-                        for(var i = 0; i <= 63; i++){
-                            append({"number": i ,
-                                       "bcolor": Graphic.cell_color(i)})
-                        }
-                    }
-
-
-                }
-
-                ListModel {
-                    id: black_last_5_moves
-                }
-                ListModel {
-                    id: white_last_5_moves
-                }
-
-
             }
 
             Rectangle {
-                width: 384
+                width: 8* Math.min(main.width/4,48)
                 height: 30
                 color: "#a12a2a"
                 transformOrigin: Item.Top
@@ -252,8 +222,8 @@ Item{
                     contentHeight: 0
                     delegate: Flow {
                         Image {
-                            width: 16
-                            height: 16
+                            width: Math.min(main.width/12, 16)
+                            height: Math.min(main.width/12, 16)
                             fillMode: Image.PreserveAspectFit
                             source: src
                         }
@@ -261,12 +231,12 @@ Item{
                         Text {
                             color: ucolor
                             text: mv
-                            font.pixelSize: 15
+                            font.pointSize: 12
                             font.bold: true
                         }
                         spacing: 4
                     }
-                    model: white_last_5_moves
+                    model: Global.white_last_5_moves
                     interactive: false
                 }
 
@@ -321,13 +291,13 @@ Item{
         dragMargin: main.width - game_area.width - 5
 
         MainMenu{
-
+            id: drawer_menu
         }
     }
-
-
-
-
 }
 
-
+/*##^##
+Designer {
+    D{i:0;autoSize:true;height:480;width:640}
+}
+##^##*/
