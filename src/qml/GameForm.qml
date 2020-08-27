@@ -42,7 +42,7 @@ Item{
                     id: top_bar
                     x: 8
                     y: 5
-                    width: 8 * Math.min(main.width / 32, 48)
+                    width: parent.width
                     height: 30
 
                     orientation: ListView.Horizontal
@@ -214,7 +214,7 @@ Item{
                     id: bottom_bar
                     x: 8
                     y: 5
-                    width: 368
+                    width: parent.width
                     height: 30
                     orientation: ListView.Horizontal
                     visible: true

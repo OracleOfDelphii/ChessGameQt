@@ -1,8 +1,8 @@
 pragma Singleton
-import QtQuick 2.0
+import QtQuick 2.9
 import gameutils 1.0
-
-
+import QtQuick.Controls 2.0
+import QtQuick.Layouts 1.3
 QtObject {
 
     property GameUtils gameutils : GameUtils{}

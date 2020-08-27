@@ -121,8 +121,8 @@ function try_move(board, black_unit_indices,
                 Global.Global.threatened_king = threatened
                 var winner = ""
                 var loser = ""
-                if(te(target_index, board, black_unit_indices,
-                      white_unit_indices)){
+                if(is_mate(target_index, board, black_unit_indices,
+                           white_unit_indices)){
                     Global.Global.game.set("normal", board,
                                            Global.Global.player_turn,
                                            Global.Global.players[0],
@@ -456,7 +456,7 @@ function is_fifty_move(board){
 }
 
 
-function te(start_index, board, b_unit_indices, w_unit_indices){
+function is_mate(start_index, board, b_unit_indices, w_unit_indices){
     var start_unit = board[start_index]
     var tar_king_index;
     var attacking_unit_indices;
@@ -563,22 +563,17 @@ function te(start_index, board, b_unit_indices, w_unit_indices){
     var up_index = Math.max(start_index,  tar_king_index)
     var lp_index = Math.min(start_index, tar_king_index)
 
-    // lets see if with diagonal move, king can be rescued or not.
 
     if((up_index - lp_index) % 9 === 0){
         // \
         for(var j = up_index - 9; j > lp_index; j -= 9){
             defending_unit_indices.forEach(function(uindex) {
                 if(uindex >= 0){
-                    var potential_rescuer = board[uindex];
-                    if(potential_rescuer.unit_type === "bishop" ||
-                            potential_rescuer.unit_type === "queen"){
-                        if(is_valid_mv(uindex, j, board)){
-                            if(check(uindex, j, board, defend_unit_color)
-                                    === -1){
-                                can_rescue = true;
-                                return;
-                            }
+                    if(is_valid_mv(uindex, j, board)){
+                        if(check(uindex, j, board, defend_unit_color)
+                                === -1){
+                            can_rescue = true;
+                            return;
                         }
                     }
                 }
@@ -595,18 +590,15 @@ function te(start_index, board, b_unit_indices, w_unit_indices){
 
             defending_unit_indices.forEach(function(uindex) {
                 if(uindex >= 0){
-                    var potential_rescuer = board[uindex];
-                    if(potential_rescuer.unit_type === "bishop" ||
-                            potential_rescuer.unit_type === "queen"){
-                        if(is_valid_mv(uindex, j, board)){
-                            if(check(uindex, j, board, defend_unit_color)
-                                    === -1){
-                                can_rescue = true;
-                                return;
-                            }
+                    if(is_valid_mv(uindex, j, board)){
+                        if(check(uindex, j, board, defend_unit_color)
+                                === -1){
+                            can_rescue = true;
+                            return;
                         }
                     }
                 }
+
             })
 
             if(can_rescue) return false;
@@ -615,37 +607,53 @@ function te(start_index, board, b_unit_indices, w_unit_indices){
     }
 
 
-
-
-    // now horizontal
-    if(start_unit.unit_type === "rock" || start_unit.unit_type === "queen"){
-
-
-        for(j = up_index; j > lp_index; j--){
-            defending_unit_indices.forEach(function(uindex) {
-                if(uindex >= 0){
-                    var def_unit = board[uindex]
-                    if(def_unit.unit_type === "queen" ||
-                            def_unit.unit_type === "rock"){
-                        if(is_valid_mv(uindex, j, board)){
-                            if(check(uindex, j, board,
-                                     defend_unit_color) === -1){
-                                can_rescue = true;
-                                return;
-                            }
-                        }
+    for(j = up_index; j > lp_index; j--){
+        defending_unit_indices.forEach(function(uindex) {
+            if(uindex >= 0){
+                var def_unit = board[uindex]
+                if(is_valid_mv(uindex, j, board)){
+                    if(check(uindex, j, board,
+                             defend_unit_color) === -1){
+                        can_rescue = true;
+                        return;
                     }
                 }
-
-            })
-
+            }
 
 
-            if(can_rescue) return false;
         }
+        )
+
+
+
+        if(can_rescue) return false;
     }
 
-    // now vertical
+
+
+    for(j = up_index; j > lp_index; j -= 8){
+        defending_unit_indices.forEach(function(uindex) {
+            if(uindex >= 0){
+                var def_unit = board[uindex]
+                if(is_valid_mv(uindex, j, board)){
+                    if(check(uindex, j, board,
+                             defend_unit_color) === -1){
+                        can_rescue = true;
+                        return;
+                    }
+                }
+            }
+        })
+
+
+
+        if(can_rescue) return false;
+    }
+
+
+
+
+
 
 
     return true;
@@ -656,6 +664,7 @@ function empty_unit(){
     return new Unit("", "empty", -1)
 }
 
+
 //! checks if horse can jump to target or not
 function is_valid_jump(start_index, target_index, board){
     var start_unit = board[start_index]
@@ -665,19 +674,13 @@ function is_valid_jump(start_index, target_index, board){
     if(tar_unit.cl === start_unit.cl){
         return false;
     }
-    // atmost, there are 8 possible positions horse can jump into.
-    cd1 = (start_index + 15) === target_index
-    cd2 = (start_index - 15) === target_index
-    cd3 = (start_index + 17) === target_index
-    cd4 = (start_index - 17) === target_index
-    cd5 = (start_index + 6) === target_index
-    cd6 = (start_index - 6) === target_index
-    cd7 = (start_index + 10) === target_index
-    cd8 = (start_index - 10) === target_index
+    var hdist = Math.abs(start_index % 8 - target_index % 8)
+    var vdist = Math.abs(Math.floor(start_index / 8) -
+                         Math.floor(target_index / 8))
 
-    if(cd1 || cd2 || cd3 || cd4) return true;
-    if(cd5 || cd6 || cd7 || cd8) return true;
-    return false;
+    return (Math.min(hdist, vdist) === 1 &&
+            Math.max(hdist, vdist) === 2)
+
 }
 
 // this function always starts from upper position on the board to the lower position and
