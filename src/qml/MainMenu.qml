@@ -42,8 +42,8 @@ Rectangle{
                 Global.w_king_pos = 60
                 Global.player_turn = 0
                 Global.is_dropped = false
-                black_last_5_moves.clear()
-                white_last_5_moves.clear()
+                Global.black_last_5_moves.clear()
+                Global.white_last_5_moves.clear()
                 Global.l_board = Global.game.board
                 Global.black_unit_indices = []
                 Global.white_unit_indices = []
