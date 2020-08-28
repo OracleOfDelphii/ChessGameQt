@@ -123,7 +123,6 @@ Rectangle{
                 Global.white_last_5_moves.clear()
 
 
-
                 for(var i = 0; i < 64; i++){
                     Global.bgModel.append({"number": i ,
                                               "bcolor": Graphic.cell_color(i)})
@@ -156,8 +155,8 @@ Rectangle{
                     "is_threatened": Global.is_threatened,
                     "b_king_pos": Global.b_king_pos,
                     "w_king_pos": Global.w_king_pos,
-                    // "black_last_5_moves": black_last_5_moves,
-                    // "white_last_5_moves": white_last_5_moves,
+                    //"black_last_5_moves": Global.black_last_5_moves,
+                    // "white_last_5_moves": Global.white_last_5_moves,
                     "black_unit_indices": Global.black_unit_indices,
                     "white_unit_indices": Global.white_unit_indices
                 }

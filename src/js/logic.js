@@ -1,7 +1,11 @@
-// TO-DO check for Draw
+// TO-DO Other conditions of Draw
+// TO-DO Castling
+// TO-DO Promotion
+// TO-DO Ranking
 
 .import "graphic.js" as Graphic
 .import Global 1.0 as Global
+
 
 
 class Player {
@@ -231,7 +235,6 @@ class Game{
         Global.Global.players[0].set_player(this.player1)
         Global.Global.players[1].set_player(this.player2)
         Global.Global.player_turn = this.turn
-        Global.Global.winner = this.winner.name
         Global.Global.threatened_king = gameutils.game["info"]["threatened_king"]
         Global.Global.is_threatened = gameutils.game["info"]["is_threatened"]
         Global.Global.black_unit_indices =
@@ -563,7 +566,7 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
     var up_index = Math.max(start_index,  tar_king_index)
     var lp_index = Math.min(start_index, tar_king_index)
 
-
+// diagonal iteration
     if((up_index - lp_index) % 9 === 0){
         // \
         for(var j = up_index - 9; j > lp_index; j -= 9){
@@ -606,7 +609,7 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
         }
     }
 
-
+// horizontal iteration
     for(j = up_index; j > lp_index; j--){
         defending_unit_indices.forEach(function(uindex) {
             if(uindex >= 0){
@@ -630,7 +633,7 @@ function is_mate(start_index, board, b_unit_indices, w_unit_indices){
     }
 
 
-
+// vertical iteration
     for(j = up_index; j > lp_index; j -= 8){
         defending_unit_indices.forEach(function(uindex) {
             if(uindex >= 0){
