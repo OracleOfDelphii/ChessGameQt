@@ -136,12 +136,12 @@ Item{
                         Global.dropped_ind = -1
                         Global.grabbed_ind = grid16.indexAt(mouseX, mouseY)
 
-                        if(Global.l_board[Global.grabbed_ind].ucolor === "white"){
+                        if(Global.l_board[Global.grabbed_ind].cl === "white"){
 
                             Global.white_unit_indices[Global.l_board[Global.grabbed_ind].id] =
                                     Global.grabbed_ind
                         }
-                        if(Global.l_board[Global.grabbed_ind].ucolor === "black"){
+                        if(Global.l_board[Global.grabbed_ind].cl === "black"){
 
                             Global.black_unit_indices[Global.l_board[Global.grabbed_ind].id] =
                                     Global.grabbed_ind

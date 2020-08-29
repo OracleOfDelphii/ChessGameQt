@@ -54,7 +54,7 @@ function add_last_move(){
         Global.Global.black_last_5_moves.append(
                     {"mv": move ,
                         "ucolor":
-                        Global.Global.l_board[Global.Global.dropped_ind].ucolor,
+                        Global.Global.l_board[Global.Global.dropped_ind].cl,
                         "src":
                         unit_src(
                             Global.Global.l_board[Global.Global.dropped_ind])

@@ -127,30 +127,10 @@ bool GameUtils::update_high_score(QJsonObject game)
         return false;
     }
 
-    ranking.remove(player1.value("name").toString());
-    ranking.remove(player2.value("name").toString());
+    ranking.insert("player1", player1);
+    ranking.insert("player2", player2);
 
-
-    QJsonObject stat_p1;
-    QJsonObject stat_p2;
-
-    stat_p1.insert("win_cnt",
-                   player1.value("win_cnt").toInt());
-    stat_p1.insert("lose_cnt",
-                   player1.value("lose_cnt").toInt());
-    stat_p1.insert("draw_cnt",
-                   player1.value("draw_cnt").toInt());
-
-    stat_p2.insert("win_cnt",
-                   player2.value("win_cnt").toInt());
-    stat_p2.insert("lose_cnt",
-                   player2.value("lose_cnt").toInt());
-    stat_p2.insert("draw_cnt",
-                   player2.value("draw_cnt").toInt());
-
-    ranking.insert(player1.value("name").toString(), stat_p1);
-    ranking.insert(player2.value("name").toString(), stat_p2);
-    save_json(ranking_path, ranking);
+     save_json(ranking_path, ranking);
 
     return true;
 };
