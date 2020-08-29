@@ -118,8 +118,8 @@ bool GameUtils::update_high_score(QJsonObject game)
 
     QString ranking_path = "./ranking.json";
 
-    QJsonObject player1 = game.value("players").toArray().at(0).toObject();
-    QJsonObject player2 = game.value("players").toArray().at(1).toObject();
+    QJsonObject player1 = game.value("player1").toObject();
+    QJsonObject player2 = game.value("player2").toObject();
 
     QJsonObject ranking;
 
