@@ -1,0 +1,22 @@
+version = 1
+
+test_patterns = [
+    "src/js/**",
+    "src/qml/**"
+]
+
+exclude_patterns = [
+    "images/**",
+    "android/**",
+    "Screenshots/**",
+    "*.pro",
+    "*.md",
+    "*.yml",
+    "*.qrc",
+    "LICENSE",
+    "*.pro.user"
+]
+
+[[analyzers]]
+name = "javascript"
+enabled = true
